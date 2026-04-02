@@ -1,0 +1,15 @@
+packages:
+  "framer-motion": "For page transitions and smooth micro-interactions"
+  "react-hook-form": "For form state management in booking and profile forms"
+  "@hookform/resolvers": "For Zod schema validation with react-hook-form"
+  "date-fns": "For formatting dates in bookings and availability"
+
+images:
+  - path: "artifacts/bookmeartist/public/images/hero-abstract.png"
+    description: "Vibrant abstract 3d gradient mesh in deep violet, purple, and gold colors, soft lighting, modern artistic feel, high resolution, clean background"
+    aspect_ratio: "16:9"
+
+notes:
+  - Using generated React Query hooks from @workspace/api-client-react for all API calls
+  - Assuming standard Shadcn UI components are available in src/components/ui/
+  - Dashboard fetches all bookings since there is no explicit auth context defined

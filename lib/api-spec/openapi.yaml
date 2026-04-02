@@ -1,0 +1,948 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: BookMeArtist API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: artists
+    description: Artist profile operations
+  - name: bookings
+    description: Booking request operations
+  - name: categories
+    description: Art category operations
+  - name: admin
+    description: Admin panel operations
+  - name: auth
+    description: Authentication operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login as artist or admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user session
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /artists:
+    get:
+      operationId: listArtists
+      tags: [artists]
+      summary: List artists
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+        - name: availability
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Artist"
+    post:
+      operationId: createArtist
+      tags: [artists]
+      summary: Create artist profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateArtistRequest"
+      responses:
+        "201":
+          description: Created artist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Artist"
+
+  /artists/{id}:
+    get:
+      operationId: getArtist
+      tags: [artists]
+      summary: Get artist by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Artist profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Artist"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateArtist
+      tags: [artists]
+      summary: Update artist profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateArtistRequest"
+      responses:
+        "200":
+          description: Updated artist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Artist"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteArtist
+      tags: [artists]
+      summary: Delete artist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List art categories
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /categories/{id}:
+    put:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteCategory
+      tags: [categories]
+      summary: Delete category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List bookings
+      parameters:
+        - name: artistId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, accepted, declined, completed]
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a booking request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingRequest"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}:
+    get:
+      operationId: getBooking
+      tags: [bookings]
+      summary: Get booking by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteBooking
+      tags: [bookings]
+      summary: Delete a booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bookings/{id}/status:
+    patch:
+      operationId: updateBookingStatus
+      tags: [bookings]
+      summary: Update booking status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBookingStatusRequest"
+      responses:
+        "200":
+          description: Updated booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get platform statistics
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: listAdminUsers
+      tags: [admin]
+      summary: List all users
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+    post:
+      operationId: createAdminUser
+      tags: [admin]
+      summary: Create a user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdminUserRequest"
+      responses:
+        "201":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+  /admin/users/{id}:
+    put:
+      operationId: updateAdminUser
+      tags: [admin]
+      summary: Update a user account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminUserRequest"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteAdminUser
+      tags: [admin]
+      summary: Delete a user account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
+
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+          enum: [admin, artist]
+        artistId:
+          type: integer
+        artistName:
+          type: string
+      required:
+        - id
+        - username
+        - role
+
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+          enum: [admin, artist]
+        artistId:
+          type: integer
+        artistName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - username
+        - role
+        - createdAt
+
+    CreateAdminUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [admin, artist]
+        artistId:
+          type: integer
+      required:
+        - username
+        - password
+        - role
+
+    UpdateAdminUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [admin, artist]
+        artistId:
+          type: integer
+
+    AdminStats:
+      type: object
+      properties:
+        totalArtists:
+          type: integer
+        totalBookings:
+          type: integer
+        pendingBookings:
+          type: integer
+        acceptedBookings:
+          type: integer
+        totalRevenue:
+          type: number
+        totalCategories:
+          type: integer
+        featuredArtists:
+          type: integer
+        availableArtists:
+          type: integer
+        totalUsers:
+          type: integer
+      required:
+        - totalArtists
+        - totalBookings
+        - pendingBookings
+        - acceptedBookings
+        - totalRevenue
+        - totalCategories
+        - featuredArtists
+        - availableArtists
+        - totalUsers
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        icon:
+          type: string
+      required:
+        - id
+        - name
+        - slug
+        - icon
+
+    CreateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        icon:
+          type: string
+      required:
+        - name
+        - slug
+        - icon
+
+    ServicePackage:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        duration:
+          type: string
+      required:
+        - name
+        - description
+        - price
+        - duration
+
+    Artist:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        bio:
+          type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        location:
+          type: string
+        profileImage:
+          type: string
+        portfolioImages:
+          type: array
+          items:
+            type: string
+        basePrice:
+          type: number
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        featured:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        packages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServicePackage"
+        availability:
+          type: string
+          enum: [available, busy, unavailable]
+        socialLinks:
+          type: object
+          properties:
+            instagram:
+              type: string
+            website:
+              type: string
+            youtube:
+              type: string
+            twitter:
+              type: string
+            tiktok:
+              type: string
+          additionalProperties: false
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - bio
+        - categoryId
+        - categoryName
+        - location
+        - profileImage
+        - basePrice
+        - rating
+        - reviewCount
+        - featured
+        - tags
+        - packages
+        - availability
+        - createdAt
+
+    CreateArtistRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        categoryId:
+          type: integer
+        location:
+          type: string
+        profileImage:
+          type: string
+        portfolioImages:
+          type: array
+          items:
+            type: string
+        basePrice:
+          type: number
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        featured:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        packages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServicePackage"
+        availability:
+          type: string
+          enum: [available, busy, unavailable]
+        socialLinks:
+          type: object
+          properties:
+            instagram:
+              type: string
+            website:
+              type: string
+            youtube:
+              type: string
+            twitter:
+              type: string
+            tiktok:
+              type: string
+          additionalProperties: false
+      required:
+        - name
+        - bio
+        - categoryId
+        - location
+        - basePrice
+        - tags
+        - packages
+        - availability
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        artistId:
+          type: integer
+        artistName:
+          type: string
+        artistImage:
+          type: string
+        clientName:
+          type: string
+        clientEmail:
+          type: string
+        eventDate:
+          type: string
+        eventType:
+          type: string
+        packageName:
+          type: string
+        budget:
+          type: number
+        brief:
+          type: string
+        location:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, declined, completed]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - artistId
+        - artistName
+        - clientName
+        - clientEmail
+        - eventDate
+        - eventType
+        - budget
+        - brief
+        - location
+        - status
+        - createdAt
+
+    CreateBookingRequest:
+      type: object
+      properties:
+        artistId:
+          type: integer
+        clientName:
+          type: string
+        clientEmail:
+          type: string
+        eventDate:
+          type: string
+        eventType:
+          type: string
+        packageName:
+          type: string
+        budget:
+          type: number
+        brief:
+          type: string
+        location:
+          type: string
+      required:
+        - artistId
+        - clientName
+        - clientEmail
+        - eventDate
+        - eventType
+        - budget
+        - brief
+        - location
+
+    UpdateBookingStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, accepted, declined, completed]
+      required:
+        - status

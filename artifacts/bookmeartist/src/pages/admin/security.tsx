@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { KeyRound, User, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { apiUrl } from "@/lib/api-base";
 
 async function apiFetch(path: string, body: Record<string, string>) {
   const res = await fetch(path, {
@@ -52,14 +53,12 @@ export default function AdminSecurity() {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
-
   async function handleUsernameSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!usernameForm.newUsername.trim()) return;
     setUsernameLoading(true);
     try {
-      await apiFetch(`${baseUrl}/api/admin/credentials/username`, {
+      await apiFetch(apiUrl("/api/admin/credentials/username"), {
         newUsername: usernameForm.newUsername.trim(),
         currentPassword: usernameForm.currentPassword,
       });
@@ -85,7 +84,7 @@ export default function AdminSecurity() {
     }
     setPasswordLoading(true);
     try {
-      await apiFetch(`${baseUrl}/api/admin/credentials/password`, {
+      await apiFetch(apiUrl("/api/admin/credentials/password"), {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });

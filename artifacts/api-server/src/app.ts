@@ -283,6 +283,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const sessionSecret = process.env.SESSION_SECRET ?? "dev-secret-change-in-production";
+const isProduction = process.env.NODE_ENV === "production";
 
 app.use(
   session({
@@ -298,8 +299,8 @@ app.use(
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
     },
   }),
 );

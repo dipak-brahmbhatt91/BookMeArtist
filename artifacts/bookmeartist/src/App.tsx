@@ -13,6 +13,8 @@ import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
 import ClaimProfile from "@/pages/claim-profile";
 import NotFound from "@/pages/not-found";
+import BlogIndex from "@/pages/blog/index";
+import BlogPost from "@/pages/blog/post";
 
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminArtists from "@/pages/admin/artists";
@@ -22,6 +24,7 @@ import AdminUsers from "@/pages/admin/users";
 import AdminSecurity from "@/pages/admin/security";
 import AdminApplications from "@/pages/admin/applications";
 import AdminContent from "@/pages/admin/content";
+import AdminBlog from "@/pages/admin/blog";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +82,8 @@ function MainRouter() {
               <Route path="/" component={Home} />
               <Route path="/artists" component={BrowseArtists} />
               <Route path="/artists/:id" component={ArtistProfile} />
+              <Route path="/blog" component={BlogIndex} />
+              <Route path="/blog/:slug" component={BlogPost} />
               <Route path="/dashboard">
                 {() => <ProtectedRoute component={Dashboard} />}
               </Route>
@@ -122,6 +127,9 @@ function App() {
               </Route>
               <Route path="/admin/content">
                 {() => <AdminProtectedRoute component={AdminContent} />}
+              </Route>
+              <Route path="/admin/blog">
+                {() => <AdminProtectedRoute component={AdminBlog} />}
               </Route>
               <Route path="/*" component={MainRouter} />
             </Switch>

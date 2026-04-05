@@ -96,7 +96,7 @@ function ApplyModal({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="apply-name" className="text-muted-foreground text-sm">Full Name *</Label>
                 <Input id="apply-name" value={form.name} onChange={(e) => set("name", e.target.value)}
@@ -110,7 +110,7 @@ function ApplyModal({ onClose }: { onClose: () => void }) {
                   className="bg-[#0a0a0f] border-white/10 text-white" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="apply-specialty" className="text-muted-foreground text-sm">Specialty *</Label>
                 <Input id="apply-specialty" value={form.specialty} onChange={(e) => set("specialty", e.target.value)}
@@ -250,7 +250,7 @@ export default function Home() {
     {showApply && <ApplyModal onClose={() => setShowApply(false)} />}
     <div className="w-full flex flex-col">
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-24 pb-32 lg:pt-32 lg:pb-40">
+      <section className="relative overflow-hidden pt-14 pb-16 sm:pt-24 sm:pb-32 lg:pt-32 lg:pb-40">
         <div className="absolute inset-0 -z-10 bg-background">
           <img 
             src={`${import.meta.env.BASE_URL}images/hero-abstract.png`}
@@ -291,13 +291,13 @@ export default function Home() {
               <span className="text-white/80" aria-hidden="true">{s("hero.badge_text", "The new standard for creative bookings")}</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-extrabold tracking-tight leading-[1.05] mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/80">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-display font-extrabold tracking-tight leading-[1.05] mb-6 sm:mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/80">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-indigo-400 to-accent drop-shadow-sm">
                 {s("hero.headline", "Book the World's Best Creators")}
               </span>
             </h1>
             
-            <p className="text-lg md:text-2xl text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-sm sm:text-lg md:text-2xl text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto">
               {s("hero.subtitle", "Skip the agency fees. Connect directly with verified musicians, photographers, and performers for your next masterpiece.")}
             </p>
 
@@ -322,7 +322,7 @@ export default function Home() {
                     autoComplete="off"
                   />
                 </div>
-                <Button size="lg" onClick={handleSearch} className="h-14 px-8 rounded-xl font-bold text-lg bg-primary hover:bg-primary/90 text-white transition-all shadow-[0_0_15px_rgba(99,102,241,0.4)] hover:shadow-[0_0_25px_rgba(99,102,241,0.6)]">
+                <Button size="lg" onClick={handleSearch} className="h-14 px-5 sm:px-8 rounded-xl font-bold text-base sm:text-lg bg-primary hover:bg-primary/90 text-white transition-all shadow-[0_0_15px_rgba(99,102,241,0.4)] hover:shadow-[0_0_25px_rgba(99,102,241,0.6)] whitespace-nowrap">
                   {s("hero.cta_text", "Explore Now")}
                 </Button>
               </div>
@@ -346,12 +346,12 @@ export default function Home() {
       </section>
 
       {/* Categories Grid */}
-      <section className="py-24 bg-background">
+      <section className="py-14 sm:py-20 md:py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-end mb-12">
+          <div className="flex justify-between items-end mb-8 sm:mb-12">
             <div>
-              <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-4">Discover by Craft</h2>
-              <p className="text-muted-foreground text-lg">Find the exact flavor of creativity you need.</p>
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-display font-bold text-white mb-2 sm:mb-4">Discover by Craft</h2>
+              <p className="text-muted-foreground text-sm sm:text-lg">Find the exact flavor of creativity you need.</p>
             </div>
             <Link href="/artists" className="hidden sm:flex items-center text-primary font-bold hover:text-accent transition-colors">
               View All Categories <ArrowRight className="w-5 h-5 ml-2" />
@@ -381,15 +381,15 @@ export default function Home() {
       </section>
 
       {/* Featured Artists */}
-      <section className="py-24 bg-card border-y border-white/5 relative overflow-hidden">
+      <section className="py-14 sm:py-20 md:py-24 bg-card border-y border-white/5 relative overflow-hidden">
         <div className="absolute right-0 top-0 w-1/3 h-full bg-primary/5 blur-[150px] pointer-events-none"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex justify-between items-end mb-16">
+          <div className="flex justify-between items-end mb-8 sm:mb-12 md:mb-16">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold mb-4">
                 <Star className="w-4 h-4 fill-primary" /> Curated Selection
               </div>
-              <h2 className="text-3xl md:text-5xl font-display font-bold text-white">Trending Talent</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-display font-bold text-white">Trending Talent</h2>
             </div>
             <Button variant="outline" asChild className="hidden sm:flex border-white/10 hover:bg-white/5 text-white">
               <Link href="/artists">See All Talent</Link>
@@ -420,28 +420,28 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section className="py-32 bg-background relative">
+      <section className="py-14 sm:py-24 md:py-32 bg-background relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-6xl font-display font-bold mb-6 text-white">
+          <div className="text-center mb-10 sm:mb-16 md:mb-20">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-bold mb-4 sm:mb-6 text-white">
               {s("how_it_works.heading", "How It Works")}
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-xl">
+            <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-xl">
               {s("how_it_works.subheading", "From initial spark to final applause in three simple steps.")}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 relative">
+          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 relative">
             {/* Gradient Line connector */}
             <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-30"></div>
             
             {steps.map((step, i) => (
-              <div key={i} className="relative z-10 bg-card border border-white/5 p-10 rounded-3xl hover:border-primary/30 transition-colors">
-                <div className="text-5xl font-display font-black text-transparent bg-clip-text bg-gradient-to-br from-white/20 to-white/5 mb-6">
+              <div key={i} className="relative z-10 bg-card border border-white/5 p-6 sm:p-8 md:p-10 rounded-3xl hover:border-primary/30 transition-colors">
+                <div className="text-4xl sm:text-5xl font-display font-black text-transparent bg-clip-text bg-gradient-to-br from-white/20 to-white/5 mb-4 sm:mb-6">
                   {step.num}
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-white">{step.title}</h3>
-                <p className="text-muted-foreground text-lg leading-relaxed">{step.desc}</p>
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-white">{step.title}</h3>
+                <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -451,21 +451,21 @@ export default function Home() {
       {/* Artist CTA Split Layout */}
       <section className="border-t border-white/10">
         <div className="grid md:grid-cols-2">
-          <div className="bg-card p-16 md:p-24 flex flex-col justify-center border-r border-white/10 relative overflow-hidden">
+          <div className="bg-card p-8 sm:p-12 md:p-16 lg:p-24 flex flex-col justify-center border-r border-white/10 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px]"></div>
-            <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 relative z-10">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-4 sm:mb-6 relative z-10">
               {s("artist_cta.heading", "Are you a creator?")}
             </h2>
-            <p className="text-xl text-muted-foreground mb-10 relative z-10">
+            <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-10 relative z-10">
               {s("artist_cta.description", "Join thousands of artists managing their bookings, payments, and client relationships all in one place.")}
             </p>
             <div className="relative z-10">
-              <Button size="lg" onClick={() => setShowApply(true)} className="bg-white text-black hover:bg-white/90 font-bold text-lg px-8 h-14 rounded-xl">
+              <Button size="lg" onClick={() => setShowApply(true)} className="bg-white text-black hover:bg-white/90 font-bold text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 rounded-xl">
                 {s("artist_cta.button_text", "Apply as Artist")}
               </Button>
             </div>
           </div>
-          <div className="relative min-h-[400px] md:min-h-0 bg-muted">
+          <div className="relative min-h-[220px] sm:min-h-[300px] md:min-h-0 bg-muted">
             <img 
               src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=1200" 
               className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity opacity-40"

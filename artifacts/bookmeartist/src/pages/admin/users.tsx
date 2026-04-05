@@ -124,8 +124,8 @@ export default function AdminUsers() {
 
   return (
     <AdminLayout>
-      <div className="p-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="p-4 sm:p-8">
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div>
             <h1 className="text-3xl font-bold font-display text-white flex items-center gap-3">
               <Users className="w-8 h-8 text-primary" />

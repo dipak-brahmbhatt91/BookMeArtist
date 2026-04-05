@@ -165,7 +165,7 @@ export default function AdminArtists() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-7xl mx-auto w-full">
+      <div className="p-4 sm:p-8 max-w-7xl mx-auto w-full">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-display font-bold text-white">Artists Directory</h1>

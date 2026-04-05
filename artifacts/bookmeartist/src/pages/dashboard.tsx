@@ -371,8 +371,8 @@ export default function Dashboard() {
         noindex={true}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-      <div className="mb-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 w-full">
+      <div className="mb-8 sm:mb-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">Artist Workspace</h1>
           <p className="text-muted-foreground mt-1">
@@ -415,20 +415,23 @@ export default function Dashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-8 h-auto p-1.5 rounded-2xl bg-card border border-border">
-          <TabsTrigger value="overview" className="rounded-xl px-5 py-2.5 gap-2">
-            <Sparkles className="w-4 h-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="bookings" className="rounded-xl px-5 py-2.5 gap-2">
-            <CalendarDays className="w-4 h-4" />
-            Bookings
-          </TabsTrigger>
-          <TabsTrigger value="profile" className="rounded-xl px-5 py-2.5 gap-2">
-            <PencilLine className="w-4 h-4" />
-            Profile
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto mb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="h-auto p-1.5 rounded-2xl bg-card border border-border inline-flex min-w-full sm:w-auto">
+            <TabsTrigger value="overview" className="rounded-xl px-4 sm:px-5 py-2.5 gap-2 flex-1 sm:flex-initial">
+              <Sparkles className="w-4 h-4" />
+              <span className="hidden xs:inline">Overview</span>
+              <span className="xs:hidden">Home</span>
+            </TabsTrigger>
+            <TabsTrigger value="bookings" className="rounded-xl px-4 sm:px-5 py-2.5 gap-2 flex-1 sm:flex-initial">
+              <CalendarDays className="w-4 h-4" />
+              Bookings
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="rounded-xl px-4 sm:px-5 py-2.5 gap-2 flex-1 sm:flex-initial">
+              <PencilLine className="w-4 h-4" />
+              Profile
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="overview" className="mt-0">
           <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6">
@@ -540,6 +543,7 @@ export default function Dashboard() {
                   <Button
                     key={status}
                     variant={bookingFilter === status ? "default" : "outline"}
+                    size="sm"
                     className="capitalize"
                     onClick={() => setBookingFilter(status)}
                   >

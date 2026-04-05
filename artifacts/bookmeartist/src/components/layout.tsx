@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Palette, Search, LayoutDashboard, Menu, X, LogIn, LogOut, User } from "lucide-react";
+import { Palette, Search, LayoutDashboard, Menu, X, LogIn, LogOut, User, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +14,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const navLinks = [
     { href: "/artists", label: "Browse Artists", icon: Search },
+    { href: "/blog", label: "Blog", icon: BookOpen },
     ...(isArtist ? [{ href: "/dashboard", label: "Workspace", icon: LayoutDashboard }] : []),
   ];
 
@@ -179,6 +180,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <h4 className="font-display font-bold text-white mb-4">Platform</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/artists" className="hover:text-primary transition-colors">Browse Artists</Link></li>
+                <li><Link href="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
                 <li><Link href="/login" className="hover:text-primary transition-colors">Artist Login</Link></li>
               </ul>
             </div>

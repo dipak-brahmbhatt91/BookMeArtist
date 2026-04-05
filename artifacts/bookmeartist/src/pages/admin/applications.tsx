@@ -146,7 +146,7 @@ export default function AdminApplications() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-5xl mx-auto w-full">
+      <div className="p-4 sm:p-8 max-w-5xl mx-auto w-full">
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-white">Artist Applications</h1>
           <p className="text-muted-foreground mt-1">Review applications, create draft profiles, and finish login linking.</p>

@@ -4,3 +4,4 @@ export * from "./bookings";
 export * from "./users";
 export * from "./applications";
 export * from "./site_content";
+export * from "./blog_posts";

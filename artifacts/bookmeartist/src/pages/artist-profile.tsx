@@ -116,14 +116,14 @@ export default function ArtistProfile() {
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 w-full animate-pulse space-y-8">
-        <Skeleton className="h-64 md:h-96 w-full rounded-3xl" />
-        <div className="flex gap-8">
+        <Skeleton className="h-40 sm:h-64 md:h-96 w-full rounded-3xl" />
+        <div className="flex flex-col md:flex-row gap-8">
           <div className="flex-1 space-y-4">
             <Skeleton className="h-10 w-1/3" />
             <Skeleton className="h-4 w-1/4" />
             <Skeleton className="h-32 w-full mt-8" />
           </div>
-          <div className="w-80 space-y-4">
+          <div className="hidden md:block w-80 space-y-4">
             <Skeleton className="h-64 w-full rounded-2xl" />
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function ArtistProfile() {
   const claimProfileHref = `/claim-profile?artistId=${artist.id}&artistName=${encodeURIComponent(artistName)}&location=${encodeURIComponent(artistLocation)}&category=${encodeURIComponent(artistCategory)}`;
 
   return (
-    <div className="pb-24">
+    <div className="pb-24 md:pb-0">
       <PageSeo
         title={`${artistName} - ${artistCategory} for Hire`}
         description={seoDescription}
@@ -185,7 +185,7 @@ export default function ArtistProfile() {
       )}
 
       {/* Hero Header */}
-      <div className="relative h-[30vh] md:h-[45vh] bg-muted w-full">
+      <div className="relative h-[22vh] sm:h-[30vh] md:h-[45vh] bg-muted w-full">
         <img 
           src="https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&q=80&w=2000" 
           className="w-full h-full object-cover"
@@ -195,7 +195,7 @@ export default function ArtistProfile() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" aria-hidden="true" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-12 sm:-mt-20 md:-mt-32">
         <div className="flex flex-col md:flex-row gap-8">
           
           {/* ── Main Content ── */}
@@ -207,9 +207,9 @@ export default function ArtistProfile() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-card p-6 md:p-8 rounded-3xl shadow-xl shadow-black/5 border border-border flex flex-col sm:flex-row gap-6 items-start"
             >
-              <img 
+              <img
                 src={artist.profileImage || "https://images.unsplash.com/photo-1516280440502-6c2e8b243e22?auto=format&fit=crop&q=80&w=400"}
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-background shadow-lg shrink-0"
+                className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-background shadow-lg shrink-0"
                 alt={artist.name}
               />
               
@@ -229,7 +229,7 @@ export default function ArtistProfile() {
                   )}
                 </div>
                 
-                <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground mb-2">
                   {artist.name}
                 </h1>
                 
@@ -396,7 +396,18 @@ export default function ArtistProfile() {
               )}
             </motion.div>
           </div>
-          
+
+        </div>
+      </div>
+
+      {/* Mobile sticky booking bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 md:hidden p-4 bg-background/95 backdrop-blur-xl border-t border-white/10 flex items-center gap-4">
+        <div className="shrink-0">
+          <p className="text-xs text-muted-foreground">Starting at</p>
+          <p className="font-display font-bold text-xl text-white">${artist.basePrice}</p>
+        </div>
+        <div className="flex-1">
+          <BookingModal artist={artist} />
         </div>
       </div>
     </div>

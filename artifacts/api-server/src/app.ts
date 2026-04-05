@@ -244,10 +244,62 @@ async function ensureSeedData() {
   }
 }
 
+async function ensureBlogPostsTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "blog_posts" (
+        "id" serial PRIMARY KEY,
+        "title" text NOT NULL,
+        "slug" text NOT NULL UNIQUE,
+        "excerpt" text NOT NULL DEFAULT '',
+        "content" text NOT NULL DEFAULT '',
+        "featured_image" text NOT NULL DEFAULT '',
+        "author" text NOT NULL DEFAULT 'BookMeArtist Team',
+        "author_bio" text NOT NULL DEFAULT '',
+        "category" text NOT NULL DEFAULT 'general',
+        "tags" jsonb NOT NULL DEFAULT '[]',
+        "status" text NOT NULL DEFAULT 'draft',
+        "meta_title" text NOT NULL DEFAULT '',
+        "meta_description" text NOT NULL DEFAULT '',
+        "og_image" text NOT NULL DEFAULT '',
+        "canonical_url" text NOT NULL DEFAULT '',
+        "noindex" boolean NOT NULL DEFAULT false,
+        "reading_time" integer NOT NULL DEFAULT 0,
+        "published_at" timestamp,
+        "created_at" timestamp NOT NULL DEFAULT now(),
+        "updated_at" timestamp NOT NULL DEFAULT now()
+      )
+    `);
+    // Defensive: add any columns that may be missing if table already existed
+    await pool.query(`
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "excerpt" text NOT NULL DEFAULT '';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "content" text NOT NULL DEFAULT '';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "featured_image" text NOT NULL DEFAULT '';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "author" text NOT NULL DEFAULT 'BookMeArtist Team';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "author_bio" text NOT NULL DEFAULT '';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "category" text NOT NULL DEFAULT 'general';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "tags" jsonb NOT NULL DEFAULT '[]';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "status" text NOT NULL DEFAULT 'draft';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "meta_title" text NOT NULL DEFAULT '';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "meta_description" text NOT NULL DEFAULT '';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "og_image" text NOT NULL DEFAULT '';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "canonical_url" text NOT NULL DEFAULT '';
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "noindex" boolean NOT NULL DEFAULT false;
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "reading_time" integer NOT NULL DEFAULT 0;
+      ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "published_at" timestamp;
+    `);
+    logger.info("Blog posts table ensured");
+  } catch (err) {
+    logger.error({ err }, "Failed to ensure blog_posts table");
+    throw err; // re-throw so startup fails loudly if table cannot be created
+  }
+}
+
 await ensureCoreTables();
 await ensureSessionTable();
 await ensureApplicationsTable();
 await ensureSiteContentTable();
+await ensureBlogPostsTable();
 await ensureSeedData();
 await ensureDefaultContent();
 await ensureAdminUser();

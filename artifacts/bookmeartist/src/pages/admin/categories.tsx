@@ -74,7 +74,7 @@ export default function AdminCategories() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-5xl mx-auto w-full">
+      <div className="p-4 sm:p-8 max-w-5xl mx-auto w-full">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-display font-bold text-white">Categories</h1>
@@ -130,8 +130,8 @@ export default function AdminCategories() {
           </Dialog>
         </div>
 
-        <div className="bg-[#0f0f1a] border border-white/10 rounded-2xl overflow-hidden">
-          <table className="w-full text-sm text-left">
+        <div className="bg-[#0f0f1a] border border-white/10 rounded-2xl overflow-hidden overflow-x-auto">
+          <table className="w-full text-sm text-left min-w-[480px]">
             <thead className="text-xs text-muted-foreground uppercase bg-white/[0.02] border-b border-white/10">
               <tr>
                 <th className="px-6 py-4 font-semibold w-16">Icon</th>

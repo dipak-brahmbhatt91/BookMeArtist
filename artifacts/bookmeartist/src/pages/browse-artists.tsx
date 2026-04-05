@@ -34,7 +34,7 @@ export default function BrowseArtists() {
   const resultCount = artists.length;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 min-h-screen">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8 min-h-screen">
       <PageSeo
         title="Browse Artists — Hire Musicians, Photographers & Performers"
         description="Search and filter hundreds of verified creative professionals. Musicians, photographers, painters, dancers, comedians and more. Compare portfolios, pricing, and reviews."
@@ -126,7 +126,7 @@ export default function BrowseArtists() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1" aria-label="Artist search results">
+      <main className="flex-1 min-w-0" aria-label="Artist search results">
         <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">Explore Artists</h1>

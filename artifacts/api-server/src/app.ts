@@ -362,11 +362,19 @@ app.use(
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      sameSite: "lax",
     },
   }),
 );
 
 app.use("/api", router);
+
+if (isProduction) {
+  const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist");
+  app.use(express.static(frontendDist));
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(frontendDist, "index.html"));
+  });
+}
 
 export default app;

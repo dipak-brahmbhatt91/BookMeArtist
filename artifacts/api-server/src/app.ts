@@ -371,9 +371,10 @@ app.use("/api", router);
 
 if (isProduction) {
   const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist");
+  const indexHtml = path.join(frontendDist, "index.html");
   app.use(express.static(frontendDist));
-  app.use((_req, res) => {
-    res.sendFile(path.join(frontendDist, "index.html"));
+  app.use((_req, res, next) => {
+    res.sendFile(indexHtml, (err) => { if (err) next(err); });
   });
 }
 

@@ -234,16 +234,28 @@ export default function AdminApplications() {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
                     {app.applicationType === "new_artist" && !app.linkedArtistId && app.status !== "rejected" && (
                       <Button
                         size="sm"
                         onClick={() => handleCreateDraft(app.id)}
-                        className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 h-8"
+                        className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 h-8 hidden sm:flex"
                         variant="ghost"
                         disabled={workingId === app.id}
                       >
                         <PlusCircle className="w-4 h-4 mr-1" /> Approve & Create Profile
+                      </Button>
+                    )}
+                    {app.applicationType === "new_artist" && !app.linkedArtistId && app.status !== "rejected" && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleCreateDraft(app.id)}
+                        className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 h-8 w-8 p-0 sm:hidden"
+                        variant="ghost"
+                        disabled={workingId === app.id}
+                        title="Approve & Create Profile"
+                      >
+                        <PlusCircle className="w-4 h-4" />
                       </Button>
                     )}
 
@@ -252,7 +264,7 @@ export default function AdminApplications() {
                         <Button
                           size="sm"
                           onClick={() => handleStatus(app.id, "approved")}
-                          className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 h-8"
+                          className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 h-8 hidden sm:flex"
                           variant="ghost"
                           disabled={workingId === app.id}
                         >
@@ -260,12 +272,23 @@ export default function AdminApplications() {
                         </Button>
                         <Button
                           size="sm"
-                          onClick={() => handleStatus(app.id, "rejected")}
-                          className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 h-8"
+                          onClick={() => handleStatus(app.id, "approved")}
+                          className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 h-8 w-8 p-0 sm:hidden"
                           variant="ghost"
                           disabled={workingId === app.id}
+                          title="Approve"
                         >
-                          <XCircle className="w-4 h-4 mr-1" /> Reject
+                          <CheckCircle className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleStatus(app.id, "rejected")}
+                          className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 h-8 w-8 p-0"
+                          variant="ghost"
+                          disabled={workingId === app.id}
+                          title="Reject"
+                        >
+                          <XCircle className="w-4 h-4" />
                         </Button>
                       </>
                     )}
@@ -276,6 +299,7 @@ export default function AdminApplications() {
                       onClick={() => handleDelete(app.id)}
                       className="text-muted-foreground hover:text-red-400 h-8 w-8 p-0"
                       disabled={workingId === app.id}
+                      title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

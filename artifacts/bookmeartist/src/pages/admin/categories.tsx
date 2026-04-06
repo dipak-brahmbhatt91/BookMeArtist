@@ -131,25 +131,25 @@ export default function AdminCategories() {
         </div>
 
         <div className="bg-[#0f0f1a] border border-white/10 rounded-2xl overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm text-left min-w-[480px]">
+          <table className="w-full text-sm text-left min-w-[360px]">
             <thead className="text-xs text-muted-foreground uppercase bg-white/[0.02] border-b border-white/10">
               <tr>
-                <th className="px-6 py-4 font-semibold w-16">Icon</th>
-                <th className="px-6 py-4 font-semibold">Name</th>
-                <th className="px-6 py-4 font-semibold">Slug</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                <th className="px-4 sm:px-6 py-4 font-semibold w-12 sm:w-16">Icon</th>
+                <th className="px-4 sm:px-6 py-4 font-semibold">Name</th>
+                <th className="px-4 sm:px-6 py-4 font-semibold hidden sm:table-cell">Slug</th>
+                <th className="px-4 sm:px-6 py-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">Loading...</td></tr>
+                <tr><td colSpan={4} className="px-4 sm:px-6 py-8 text-center text-muted-foreground">Loading...</td></tr>
               ) : categories && categories.length > 0 ? (
                 categories.map((category) => (
                   <tr key={category.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                    <td className="px-6 py-4 text-2xl">{category.icon}</td>
-                    <td className="px-6 py-4 font-medium text-white">{category.name}</td>
-                    <td className="px-6 py-4 text-muted-foreground font-mono text-xs">{category.slug}</td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 sm:px-6 py-4 text-2xl">{category.icon}</td>
+                    <td className="px-4 sm:px-6 py-4 font-medium text-white">{category.name}</td>
+                    <td className="px-4 sm:px-6 py-4 text-muted-foreground font-mono text-xs hidden sm:table-cell">{category.slug}</td>
+                    <td className="px-4 sm:px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="icon" className="hover:bg-white/10 text-muted-foreground hover:text-white" onClick={() => handleOpenDialog(category)}>
                           <Edit2 className="w-4 h-4" />

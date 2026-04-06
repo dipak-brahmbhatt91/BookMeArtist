@@ -59,12 +59,12 @@ export default function AdminBookings() {
             <p className="text-muted-foreground mt-1">Manage all platform gig requests</p>
           </div>
           
-          <Tabs defaultValue="all" onValueChange={setStatusFilter} className="w-[400px]">
-            <TabsList className="bg-[#0f0f1a] border border-white/10 p-1">
-              <TabsTrigger value="all" className="data-[state=active]:bg-primary">All</TabsTrigger>
-              <TabsTrigger value="pending" className="data-[state=active]:bg-amber-500">Pending</TabsTrigger>
-              <TabsTrigger value="accepted" className="data-[state=active]:bg-emerald-500">Accepted</TabsTrigger>
-              <TabsTrigger value="completed" className="data-[state=active]:bg-blue-500">Completed</TabsTrigger>
+          <Tabs defaultValue="all" onValueChange={setStatusFilter} className="w-full sm:w-auto">
+            <TabsList className="bg-[#0f0f1a] border border-white/10 p-1 w-full sm:w-auto">
+              <TabsTrigger value="all" className="data-[state=active]:bg-primary flex-1 sm:flex-none">All</TabsTrigger>
+              <TabsTrigger value="pending" className="data-[state=active]:bg-amber-500 flex-1 sm:flex-none">Pending</TabsTrigger>
+              <TabsTrigger value="accepted" className="data-[state=active]:bg-emerald-500 flex-1 sm:flex-none">Accepted</TabsTrigger>
+              <TabsTrigger value="completed" className="data-[state=active]:bg-blue-500 flex-1 sm:flex-none">Completed</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -145,7 +145,7 @@ export default function AdminBookings() {
 
         {/* Booking Details Sheet */}
         <Sheet open={!!selectedBooking} onOpenChange={(open) => !open && setSelectedBooking(null)}>
-          <SheetContent className="bg-[#0f0f1a] border-l border-white/10 text-white sm:max-w-md overflow-y-auto">
+          <SheetContent className="bg-[#0f0f1a] border-l border-white/10 text-white w-full sm:max-w-md overflow-y-auto">
             <SheetHeader className="mb-6">
               <SheetTitle className="text-2xl text-white">Booking Request</SheetTitle>
               <SheetDescription>ID: {selectedBooking?.id}</SheetDescription>

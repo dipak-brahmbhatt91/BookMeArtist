@@ -141,8 +141,8 @@ export default function AdminUsers() {
       <div className="p-4 sm:p-8">
         <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold font-display text-white flex items-center gap-3">
-              <Users className="w-8 h-8 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-bold font-display text-white flex items-center gap-2 sm:gap-3">
+              <Users className="w-6 h-6 sm:w-8 sm:h-8 text-primary shrink-0" />
               User Accounts
             </h1>
             <p className="text-slate-400 mt-1">Manage artist login accounts and admin access</p>
@@ -259,13 +259,13 @@ export default function AdminUsers() {
         </div>
 
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-800/30">
-            <div className="grid grid-cols-12 gap-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              <div className="col-span-3">Username</div>
-              <div className="col-span-2">Role</div>
-              <div className="col-span-4">Linked Artist</div>
-              <div className="col-span-2">Created</div>
-              <div className="col-span-1"></div>
+          <div className="px-4 sm:px-6 py-4 border-b border-slate-700/50 bg-slate-800/30">
+            <div className="grid grid-cols-12 gap-2 sm:gap-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <div className="col-span-6 sm:col-span-3">Username</div>
+              <div className="col-span-4 sm:col-span-2">Role</div>
+              <div className="hidden sm:block sm:col-span-4">Linked Artist</div>
+              <div className="hidden sm:block sm:col-span-2">Created</div>
+              <div className="col-span-2 sm:col-span-1"></div>
             </div>
           </div>
 
@@ -278,23 +278,23 @@ export default function AdminUsers() {
               ))
             ) : users && users.length > 0 ? (
               users.map((user) => (
-                <div key={user.id} className="px-6 py-4 grid grid-cols-12 gap-4 items-center hover:bg-slate-700/20 transition-colors">
-                  <div className="col-span-3 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
+                <div key={user.id} className="px-4 sm:px-6 py-4 grid grid-cols-12 gap-2 sm:gap-4 items-center hover:bg-slate-700/20 transition-colors">
+                  <div className="col-span-6 sm:col-span-3 flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
                       {user.role === "admin" ? <Shield className="w-3.5 h-3.5 text-primary" /> : <User className="w-3.5 h-3.5 text-primary" />}
                     </div>
-                    <span className="font-semibold text-white">{user.username}</span>
+                    <span className="font-semibold text-white truncate">{user.username}</span>
                   </div>
 
-                  <div className="col-span-2">
+                  <div className="col-span-4 sm:col-span-2">
                     <Badge
                       variant="outline"
                       className={
                         user.role === "superadmin"
-                          ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                          ? "bg-amber-500/10 text-amber-400 border-amber-500/30 text-xs"
                           : user.role === "admin"
-                          ? "bg-violet-500/10 text-violet-400 border-violet-500/30"
-                          : "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                          ? "bg-violet-500/10 text-violet-400 border-violet-500/30 text-xs"
+                          : "bg-blue-500/10 text-blue-400 border-blue-500/30 text-xs"
                       }
                     >
                       {user.role === "superadmin"
@@ -303,11 +303,12 @@ export default function AdminUsers() {
                         ? <Shield className="w-3 h-3 mr-1" />
                         : <Palette className="w-3 h-3 mr-1" />
                       }
-                      {user.role === "superadmin" ? "Super Admin" : user.role}
+                      <span className="hidden sm:inline">{user.role === "superadmin" ? "Super Admin" : user.role}</span>
+                      <span className="sm:hidden">{user.role === "superadmin" ? "SA" : user.role === "admin" ? "ADM" : "ART"}</span>
                     </Badge>
                   </div>
 
-                  <div className="col-span-4 text-slate-400 text-sm">
+                  <div className="hidden sm:block sm:col-span-4 text-slate-400 text-sm">
                     {user.artistName ? (
                       <span className="text-white">{user.artistName}</span>
                     ) : (
@@ -315,11 +316,11 @@ export default function AdminUsers() {
                     )}
                   </div>
 
-                  <div className="col-span-2 text-slate-500 text-sm">
+                  <div className="hidden sm:block sm:col-span-2 text-slate-500 text-sm">
                     {format(new Date(user.createdAt), "MMM d, yyyy")}
                   </div>
 
-                  <div className="col-span-1 flex justify-end gap-1">
+                  <div className="col-span-2 sm:col-span-1 flex justify-end gap-1">
                     <Button
                       variant="ghost"
                       size="icon"

@@ -24,13 +24,13 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <div className="p-4 sm:p-8 max-w-7xl mx-auto w-full">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-display font-bold text-white">Dashboard Overview</h1>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Dashboard Overview</h1>
             <p className="text-muted-foreground mt-1">Platform metrics and recent activity</p>
           </div>
           <div className="flex gap-3">
-            <Button asChild variant="outline" className="border-white/10 hover:bg-white/5">
+            <Button asChild variant="outline" className="border-white/10 hover:bg-white/5 hidden sm:inline-flex">
               <Link href="/admin/categories">Add Category</Link>
             </Button>
             <Button asChild className="bg-primary text-white hover:bg-primary/90">

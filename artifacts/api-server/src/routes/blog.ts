@@ -4,13 +4,30 @@ import { blogPostsTable } from "@workspace/db/schema";
 import { eq, and, ilike, or, desc, sql } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router: IRouter = Router();
+
+// ─── Multer Setup ──────────────────────────────────────────────────────────
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage });
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 function calcReadingTime(content: string): number {
-  const words = content.replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length;
+  const text = content || "";
+  const words = text.replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / 200));
 }
 
@@ -37,6 +54,10 @@ router.get("/blog", async (req, res) => {
 
     if (category && typeof category === "string") {
       conditions.push(eq(blogPostsTable.category, category) as any);
+    }
+
+    if (tag && typeof tag === "string") {
+      conditions.push(sql`${blogPostsTable.tags} @> ${JSON.stringify([tag])}::jsonb`);
     }
 
     if (search && typeof search === "string") {
@@ -76,16 +97,10 @@ router.get("/blog", async (req, res) => {
         .where(whereClause),
     ]);
 
-    // Tag filter (done in JS because tags is a jsonb array)
-    const filtered =
-      tag && typeof tag === "string"
-        ? posts.filter((p) => Array.isArray(p.tags) && p.tags.includes(tag))
-        : posts;
-
     const total = countResult[0]?.count ?? 0;
 
     res.json({
-      posts: filtered,
+      posts,
       pagination: {
         page,
         limit,
@@ -179,6 +194,13 @@ router.get("/blog/:slug", async (req, res) => {
 
 // ─── Admin routes ──────────────────────────────────────────────────────────
 
+/** POST /api/admin/blog/upload — upload an image */
+router.post("/admin/blog/upload", requireAdmin, upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+  const url = `/uploads/${req.file.filename}`;
+  res.json({ url });
+});
+
 const postBodySchema = z.object({
   title: z.string().min(1),
   slug: z.string().optional(),
@@ -236,7 +258,7 @@ router.get("/admin/blog/:id", requireAdmin, async (req, res) => {
 
     if (!post) return res.status(404).json({ error: "Post not found" });
     res.json(post);
-  } catch (err) {
+  } catch (err: any) {
     req.log.error({ err, id: req.params.id }, "Failed to fetch admin blog post");
     res.status(500).json({ error: "Internal server error" });
   }

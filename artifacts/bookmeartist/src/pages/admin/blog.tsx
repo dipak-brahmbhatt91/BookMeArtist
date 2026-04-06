@@ -11,10 +11,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Plus, Edit2, Trash2, BookOpen, Eye, EyeOff, Globe, Tag,
-  Clock, Search, FileText, Sparkles, X, ExternalLink,
+  Plus, Edit2, Trash2, BookOpen, Eye, EyeOff, Globe, Tag, Bold, Italic, 
+  List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, Upload,
+  Clock, Search, FileText, Sparkles, X, ExternalLink, Undo, Redo, RefreshCw
 } from "lucide-react";
 import { apiUrl } from "@/lib/api-base";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -69,6 +74,128 @@ const EMPTY_FORM: Omit<BlogPostFull, "id" | "createdAt" | "updatedAt" | "publish
   noindex: false,
 };
 
+// ─── TipTap Editor Components ──────────────────────────────────────────────
+
+const MenuBar = ({ 
+  editor, 
+  isHtmlMode, 
+  onToggleHtml 
+}: { editor: any, isHtmlMode: boolean, onToggleHtml: () => void }) => {
+  if (!editor) return null;
+
+  const setLink = () => {
+    const url = window.prompt('URL');
+    if (url) editor.chain().focus().setLink({ href: url }).run();
+  };
+
+  const btnClass = (active: boolean) => 
+    `p-2 rounded-md transition-colors ${active ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-white/10 hover:text-white'}`;
+
+  return (
+    <div className="flex flex-wrap gap-1 p-1 mb-2 border-b border-white/10 bg-black/20 rounded-t-lg sticky top-0 z-10">
+      {!isHtmlMode && (
+        <>
+          <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={btnClass(editor.isActive('bold'))}><Bold className="w-4 h-4" /></button>
+          <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={btnClass(editor.isActive('italic'))}><Italic className="w-4 h-4" /></button>
+          <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={btnClass(editor.isActive('heading', { level: 1 }))}><Heading1 className="w-4 h-4" /></button>
+          <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={btnClass(editor.isActive('heading', { level: 2 }))}><Heading2 className="w-4 h-4" /></button>
+          <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={btnClass(editor.isActive('bulletList'))}><List className="w-4 h-4" /></button>
+          <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={btnClass(editor.isActive('orderedList'))}><ListOrdered className="w-4 h-4" /></button>
+          <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={btnClass(editor.isActive('blockquote'))}><Quote className="w-4 h-4" /></button>
+          <button type="button" onClick={() => editor.chain().focus().toggleCode().run()} className={btnClass(editor.isActive('code'))}><Code className="w-4 h-4" /></button>
+          <button type="button" onClick={setLink} className={btnClass(editor.isActive('link'))}><LinkIcon className="w-4 h-4" /></button>
+          <div className="w-px h-4 bg-white/10 self-center mx-1" />
+          <button type="button" onClick={() => editor.chain().focus().undo().run()} className={btnClass(false)}><Undo className="w-4 h-4" /></button>
+          <button type="button" onClick={() => editor.chain().focus().redo().run()} className={btnClass(false)}><Redo className="w-4 h-4" /></button>
+          <div className="w-px h-4 bg-white/10 self-center mx-1" />
+        </>
+      )}
+      <button 
+        type="button" 
+        onClick={onToggleHtml} 
+        className={btnClass(isHtmlMode)}
+        title={isHtmlMode ? "Switch to Visual Editor" : "Switch to HTML Editor"}
+      >
+        <div className="flex items-center gap-1.5 px-1">
+          <Code className="w-4 h-4" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">{isHtmlMode ? "Visual" : "HTML"}</span>
+        </div>
+      </button>
+    </div>
+  );
+};
+
+const RichTextEditor = ({ content, onChange }: { content: string, onChange: (val: string) => void }) => {
+  const [isHtmlMode, setIsHtmlMode] = useState(false);
+  const [localHtml, setLocalHtml] = useState(content);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link.configure({ openOnClick: false }),
+      Placeholder.configure({ placeholder: 'Start writing your story...' }),
+    ],
+    content,
+    onUpdate: ({ editor }) => {
+      if (!isHtmlMode) {
+        onChange(editor.getHTML());
+      }
+    },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-invert max-w-none focus:outline-none min-h-[400px] p-4 text-sm',
+      },
+    },
+  });
+
+  // Sync content only if changed externally (e.g. when switching posts)
+  useEffect(() => {
+    if (editor && !isHtmlMode && content !== editor.getHTML()) {
+      editor.commands.setContent(content, false);
+    }
+    // If content changes externally while in HTML mode, sync localHtml
+    if (isHtmlMode && content !== localHtml) {
+      setLocalHtml(content);
+    }
+  }, [content, editor, isHtmlMode, localHtml]);
+
+  const handleToggle = () => {
+    if (isHtmlMode) {
+      // Switching from HTML to Visual: Push current HTML back to the editor
+      // This is where Tiptap will parse and "normalize" the HTML
+      editor?.commands.setContent(localHtml);
+      onChange(localHtml);
+    } else {
+      // Switching from Visual to HTML: Capture current editor content
+      setLocalHtml(editor?.getHTML() || "");
+    }
+    setIsHtmlMode(!isHtmlMode);
+  };
+
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+      <MenuBar 
+        editor={editor} 
+        isHtmlMode={isHtmlMode} 
+        onToggleHtml={handleToggle} 
+      />
+      {isHtmlMode ? (
+        <Textarea
+          value={localHtml}
+          onChange={(e) => {
+            setLocalHtml(e.target.value);
+            onChange(e.target.value);
+          }}
+          className="w-full min-h-[400px] bg-[#0a0a0f] border-none focus-visible:ring-0 font-mono text-sm p-4 text-emerald-400/90 rounded-none shadow-none leading-relaxed"
+          spellCheck={false}
+        />
+      ) : (
+        <EditorContent editor={editor} />
+      )}
+    </div>
+  );
+};
+
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 function toSlug(title: string) {
@@ -109,6 +236,7 @@ export default function AdminBlog() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [form, setForm] = useState({ ...EMPTY_FORM });
 
@@ -159,8 +287,8 @@ export default function AdminBlog() {
       });
       setTagInput("");
       setIsOpen(true);
-    } catch {
-      toast({ title: "Error", description: "Failed to load post", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to load post", variant: "destructive" });
     }
   }
 
@@ -183,6 +311,44 @@ export default function AdminBlog() {
 
   function removeTag(tag: string) {
     setForm((f) => ({ ...f, tags: f.tags.filter((t) => t !== tag) }));
+  }
+
+  const getImageUrl = (url: string) => {
+    if (!url) return "";
+    return url.startsWith("http") ? url : apiUrl(url);
+  };
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(apiUrl("/api/admin/blog/upload"), {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.error || `Server error: ${res.status}`);
+      }
+
+      if (data.url) {
+        setForm((f) => ({ ...f, featuredImage: data.url }));
+        toast({ title: "Success", description: "Image uploaded successfully" });
+      }
+    } catch (err: any) {
+      toast({ title: "Upload Failed", description: err.message || "Could not connect to server", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   }
 
   // Save
@@ -223,8 +389,8 @@ export default function AdminBlog() {
       await apiFetch(`/api/admin/blog/${id}`, { method: "DELETE" });
       toast({ title: "Deleted", description: "Post deleted" });
       loadPosts();
-    } catch {
-      toast({ title: "Error", description: "Failed to delete post", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to delete post", variant: "destructive" });
     }
   }
 
@@ -238,8 +404,8 @@ export default function AdminBlog() {
       });
       toast({ title: newStatus === "published" ? "Published" : "Unpublished", description: post.title });
       loadPosts();
-    } catch {
-      toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to update status", variant: "destructive" });
     }
   }
 
@@ -449,26 +615,50 @@ export default function AdminBlog() {
                     <Clock className="w-3 h-3" /> ~{readingTime} min read
                   </span>
                 </div>
-                <Textarea
-                  value={form.content}
-                  onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                  placeholder="<p>Write your article content here. HTML is supported.</p>"
-                  rows={16}
-                  className="bg-white/5 border-white/10 font-mono text-sm resize-y"
+                <RichTextEditor 
+                  content={form.content} 
+                  onChange={(val) => setForm(f => ({ ...f, content: val }))} 
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white">Featured Image URL</Label>
-                <Input
-                  value={form.featuredImage}
-                  onChange={(e) => setForm((f) => ({ ...f, featuredImage: e.target.value }))}
-                  placeholder="https://…"
-                  className="bg-white/5 border-white/10"
-                />
+                <Label className="text-white">Featured Image</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={form.featuredImage}
+                    onChange={(e) => setForm((f) => ({ ...f, featuredImage: e.target.value }))}
+                    placeholder="https://… or upload below"
+                    className="bg-white/5 border-white/10"
+                  />
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="blog-image-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={uploading}
+                      onClick={() => document.getElementById('blog-image-upload')?.click()}
+                    >
+                      {uploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
                 {form.featuredImage && (
-                  <div className="mt-2 rounded-lg overflow-hidden aspect-[16/9] max-w-xs bg-white/5">
-                    <img src={form.featuredImage} alt="preview" className="w-full h-full object-cover" />
+                  <div className="mt-2 rounded-lg overflow-hidden aspect-[16/9] max-w-xs bg-white/5 relative group">
+                    <img src={getImageUrl(form.featuredImage)} alt="preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, featuredImage: "" }))}
+                      className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
+                      title="Remove image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>

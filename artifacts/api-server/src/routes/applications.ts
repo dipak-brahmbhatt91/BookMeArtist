@@ -113,7 +113,7 @@ router.get("/admin/applications", requireAdmin, async (req, res) => {
 
 router.patch("/admin/applications/:id", requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
 
     const { status } = req.body;
@@ -138,7 +138,7 @@ router.patch("/admin/applications/:id", requireAdmin, async (req, res) => {
 
 router.post("/admin/applications/:id/create-artist-draft", requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
 
     const [application] = await db
@@ -198,7 +198,7 @@ router.post("/admin/applications/:id/create-artist-draft", requireAdmin, async (
 
 router.delete("/admin/applications/:id", requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
 
     const [deleted] = await db

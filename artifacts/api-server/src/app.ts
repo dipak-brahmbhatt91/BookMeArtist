@@ -1,4 +1,5 @@
 import express, { type Express } from "express";
+import path from "path";
 import cors from "cors";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
@@ -333,6 +334,9 @@ app.use(
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files statically from the "uploads" directory
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 const sessionSecret = process.env.SESSION_SECRET ?? "dev-secret-change-in-production";
 const isProduction = process.env.NODE_ENV === "production";

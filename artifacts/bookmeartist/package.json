@@ -72,6 +72,10 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@tiptap/extension-link": "^3.22.2",
+    "@tiptap/extension-placeholder": "^3.22.2",
+    "@tiptap/react": "^3.22.2",
+    "@tiptap/starter-kit": "^3.22.2",
     "react-helmet-async": "^3.0.0"
   }
 }

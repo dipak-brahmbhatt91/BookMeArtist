@@ -99,10 +99,15 @@ async function ensureAdminUser() {
       await db.insert(usersTable).values({
         username: "admin",
         passwordHash,
-        role: "admin",
+        role: "superadmin",
         artistId: null,
       });
       logger.info("Admin user created");
+    } else {
+      // Migrate: if the seeded admin account is still "admin" role, promote to superadmin
+      await pool.query(`
+        UPDATE "users" SET "role" = 'superadmin' WHERE "username" = 'admin' AND "role" = 'admin'
+      `);
     }
   } catch (err) {
     logger.error({ err }, "Failed to ensure admin user");

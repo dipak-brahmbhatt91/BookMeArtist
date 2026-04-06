@@ -10,18 +10,20 @@ import {
   useListArtists,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Users, Plus, Trash2, Edit2, Shield, Palette, Key, User } from "lucide-react";
+import { Users, Plus, Trash2, Edit2, Shield, Palette, Key, User, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 import { format } from "date-fns";
 
 export default function AdminUsers() {
   const search = useSearch();
   const params = new URLSearchParams(search);
+  const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useListAdminUsers();
   const { data: artists } = useListArtists();
   const createUser = useCreateAdminUser();
@@ -32,12 +34,22 @@ export default function AdminUsers() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingRole, setEditingRole] = useState<string | null>(null);
   const [prefillApplied, setPrefillApplied] = useState(false);
+
+  const isSuperAdmin = currentUser?.role === "superadmin";
+
+  // True when editing another elevated account (admin/superadmin) and you're not superadmin
+  const isEditingOtherAdmin =
+    editingId !== null &&
+    (editingRole === "admin" || editingRole === "superadmin") &&
+    editingId !== currentUser?.id &&
+    !isSuperAdmin;
 
   const initialFormState = {
     username: "",
     password: "",
-    role: "artist" as "admin" | "artist",
+    role: "artist" as "superadmin" | "admin" | "artist",
     artistId: undefined as number | undefined,
   };
 
@@ -65,14 +77,16 @@ export default function AdminUsers() {
   const handleOpen = (user?: NonNullable<typeof users>[0]) => {
     if (user) {
       setEditingId(user.id);
+      setEditingRole(user.role);
       setForm({
         username: user.username,
         password: "",
-        role: user.role as "admin" | "artist",
+        role: user.role as "superadmin" | "admin" | "artist",
         artistId: user.artistId ?? undefined,
       });
     } else {
       setEditingId(null);
+      setEditingRole(null);
       setForm(initialFormState);
     }
     setIsOpen(true);
@@ -148,6 +162,13 @@ export default function AdminUsers() {
               </SheetHeader>
 
               <form onSubmit={handleSubmit} className="space-y-5 mt-6">
+                {isEditingOtherAdmin && (
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm">
+                    <Lock className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span>You cannot change the username, password, or role of another admin account.</span>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-300">Username *</label>
                   <div className="relative">
@@ -156,8 +177,9 @@ export default function AdminUsers() {
                       value={form.username}
                       onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
                       placeholder="artist_handle"
-                      className="pl-9 bg-slate-800 border-slate-600 text-white"
-                      required
+                      className="pl-9 bg-slate-800 border-slate-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                      required={!isEditingOtherAdmin}
+                      disabled={isEditingOtherAdmin}
                     />
                   </div>
                 </div>
@@ -172,22 +194,30 @@ export default function AdminUsers() {
                       type="password"
                       value={form.password}
                       onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                      placeholder="••••••••"
-                      className="pl-9 bg-slate-800 border-slate-600 text-white"
-                      required={!editingId}
+                      placeholder={isEditingOtherAdmin ? "Cannot change another admin's password" : "••••••••"}
+                      className="pl-9 bg-slate-800 border-slate-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                      required={!editingId && !isEditingOtherAdmin}
+                      disabled={isEditingOtherAdmin}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-300">Role *</label>
-                  <Select value={form.role} onValueChange={(v: "admin" | "artist") => setForm(f => ({ ...f, role: v }))}>
-                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                  <Select
+                    value={form.role}
+                    onValueChange={(v: "superadmin" | "admin" | "artist") => setForm(f => ({ ...f, role: v }))}
+                    disabled={isEditingOtherAdmin}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white disabled:opacity-40 disabled:cursor-not-allowed">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
                       <SelectItem value="artist" className="text-white">Artist</SelectItem>
                       <SelectItem value="admin" className="text-white">Admin</SelectItem>
+                      {isSuperAdmin && (
+                        <SelectItem value="superadmin" className="text-white">Super Admin</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -259,13 +289,21 @@ export default function AdminUsers() {
                   <div className="col-span-2">
                     <Badge
                       variant="outline"
-                      className={user.role === "admin"
-                        ? "bg-violet-500/10 text-violet-400 border-violet-500/30"
-                        : "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                      className={
+                        user.role === "superadmin"
+                          ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                          : user.role === "admin"
+                          ? "bg-violet-500/10 text-violet-400 border-violet-500/30"
+                          : "bg-blue-500/10 text-blue-400 border-blue-500/30"
                       }
                     >
-                      {user.role === "admin" ? <Shield className="w-3 h-3 mr-1" /> : <Palette className="w-3 h-3 mr-1" />}
-                      {user.role}
+                      {user.role === "superadmin"
+                        ? <ShieldCheck className="w-3 h-3 mr-1" />
+                        : user.role === "admin"
+                        ? <Shield className="w-3 h-3 mr-1" />
+                        : <Palette className="w-3 h-3 mr-1" />
+                      }
+                      {user.role === "superadmin" ? "Super Admin" : user.role}
                     </Badge>
                   </div>
 
@@ -293,8 +331,19 @@ export default function AdminUsers() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="w-7 h-7 text-slate-400 hover:text-destructive"
+                      className="w-7 h-7 text-slate-400 hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed"
                       onClick={() => handleDelete(user.id, user.username)}
+                      disabled={
+                        user.id === currentUser?.id ||
+                        user.role === "superadmin" ||
+                        ((user.role === "admin") && !isSuperAdmin)
+                      }
+                      title={
+                        user.id === currentUser?.id ? "Cannot delete your own account"
+                        : user.role === "superadmin" ? "Super admin accounts cannot be deleted"
+                        : !isSuperAdmin && user.role === "admin" ? "Only a super admin can delete admin accounts"
+                        : undefined
+                      }
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>

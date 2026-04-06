@@ -53,12 +53,12 @@ function AdminProtectedRoute({ component: Component }: { component: React.Compon
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== "admin")) {
+    if (!isLoading && (!user || (user.role !== "admin" && user.role !== "superadmin"))) {
       navigate("/login?redirect=/admin");
     }
   }, [isLoading, user, navigate]);
 
-  if (isLoading || !user || user.role !== "admin") return <Spinner />;
+  if (isLoading || !user || (user.role !== "admin" && user.role !== "superadmin")) return <Spinner />;
   return <Component />;
 }
 

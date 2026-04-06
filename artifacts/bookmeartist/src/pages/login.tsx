@@ -13,6 +13,7 @@ export default function Login() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const redirectTo = params.get("redirect");
+  const isAdminLogin = redirectTo?.startsWith("/admin");
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -26,9 +27,10 @@ export default function Login() {
     setIsLoading(true);
     try {
       const user = await login(username, password);
-      if (redirectTo) {
+      const canAccessAdmin = user.role === "admin" || user.role === "superadmin";
+      if (redirectTo && !(redirectTo.startsWith("/admin") && !canAccessAdmin)) {
         navigate(redirectTo);
-      } else if (user.role === "admin") {
+      } else if (canAccessAdmin) {
         navigate("/admin");
       } else {
         navigate("/dashboard");
@@ -44,7 +46,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <PageSeo
-        title="Artist Login — Sign In to Your Dashboard"
+        title={isAdminLogin ? "Admin Login" : "Artist Login — Sign In to Your Dashboard"}
         description="Sign in to your BookMeArtist account to manage bookings, update your portfolio, and connect with clients."
         canonical="/login"
         noindex={true}
@@ -71,8 +73,8 @@ export default function Login() {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
               <Lock className="w-7 h-7 text-primary" aria-hidden="true" />
             </div>
-            <h1 className="font-display font-bold text-3xl text-white mb-2">Artist Login</h1>
-            <p className="text-muted-foreground">Sign in to manage your profile and bookings</p>
+            <h1 className="font-display font-bold text-3xl text-white mb-2">{isAdminLogin ? "Admin Login" : "Artist Login"}</h1>
+            <p className="text-muted-foreground">{isAdminLogin ? "Sign in with your admin credentials" : "Sign in to manage your profile and bookings"}</p>
           </div>
 
           <div className="bg-card/50 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">

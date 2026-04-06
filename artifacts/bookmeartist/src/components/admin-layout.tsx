@@ -13,12 +13,17 @@ import {
   BookOpen,
   Menu,
   X,
+  ExternalLink,
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/hooks/use-toast";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { logout } = useAuth();
+  const { toast } = useToast();
 
   const navItems = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -77,15 +82,26 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-white/10 space-y-1">
         <Link
           href="/"
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-white/5 hover:text-white transition-all"
           onClick={() => setSidebarOpen(false)}
         >
-          <LogOut className="w-5 h-5" />
+          <ExternalLink className="w-5 h-5" />
           Exit to Main Site
         </Link>
+        <button
+          onClick={async () => {
+            await logout();
+            toast({ title: "Signed out", description: "You have been logged out." });
+            navigate("/");
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 transition-all text-left"
+        >
+          <LogOut className="w-5 h-5" />
+          Logout
+        </button>
       </div>
     </>
   );

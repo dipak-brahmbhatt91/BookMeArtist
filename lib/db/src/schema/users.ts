@@ -7,7 +7,7 @@ export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  role: text("role", { enum: ["admin", "artist"] }).notNull().default("artist"),
+  role: text("role", { enum: ["superadmin", "admin", "artist"] }).notNull().default("artist"),
   artistId: integer("artist_id").references(() => artistsTable.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

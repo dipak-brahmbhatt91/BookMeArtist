@@ -8,7 +8,7 @@ import { z } from "zod";
 declare module "express-session" {
   interface SessionData {
     userId?: number;
-    role?: "admin" | "artist";
+    role?: "superadmin" | "admin" | "artist";
     artistId?: number | null;
   }
 }
@@ -34,7 +34,7 @@ async function getArtistNameById(artistId?: number | null) {
 
 async function saveSession(req: Request, user: { id: number; role: string; artistId: number | null }) {
   req.session.userId = user.id;
-  req.session.role = user.role as "admin" | "artist";
+  req.session.role = user.role as "superadmin" | "admin" | "artist";
   req.session.artistId = user.artistId;
 
   await new Promise<void>((resolve, reject) => {

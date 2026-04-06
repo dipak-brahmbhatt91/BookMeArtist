@@ -370,7 +370,7 @@ app.use(
 app.use("/api", router);
 
 if (isProduction) {
-  const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist");
+  const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist/public");
   const indexHtml = path.join(frontendDist, "index.html");
   app.use(express.static(frontendDist));
   app.use((_req, res, next) => {

@@ -348,6 +348,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 app.use(
   session({
+    proxy: true,
     store: new PgSession({
       pool,
       tableName: "session",

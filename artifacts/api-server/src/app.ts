@@ -372,7 +372,7 @@ app.use("/api", router);
 if (isProduction) {
   const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist");
   app.use(express.static(frontendDist));
-  app.get("*", (_req, res) => {
+  app.use((_req, res) => {
     res.sendFile(path.join(frontendDist, "index.html"));
   });
 }

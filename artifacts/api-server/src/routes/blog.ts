@@ -5,23 +5,19 @@ import { eq, and, ilike, or, desc, sql } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth";
 import { z } from "zod";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { v2 as cloudinary } from "cloudinary";
 
 const router: IRouter = Router();
 
-// ─── Multer Setup ──────────────────────────────────────────────────────────
-const uploadDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+// ─── Multer Setup (memory storage for Cloudinary) ─────────────────────────
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
+// ─── Cloudinary Config ─────────────────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const upload = multer({ storage });
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -194,11 +190,25 @@ router.get("/blog/:slug", async (req, res) => {
 
 // ─── Admin routes ──────────────────────────────────────────────────────────
 
-/** POST /api/admin/blog/upload — upload an image */
-router.post("/admin/blog/upload", requireAdmin, upload.single("file"), (req, res) => {
+/** POST /api/admin/blog/upload — upload an image to Cloudinary */
+router.post("/admin/blog/upload", requireAdmin, upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-  const url = `/uploads/${req.file.filename}`;
-  res.json({ url });
+  try {
+    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "bookmeartist/blog", resource_type: "image" },
+        (err, result) => {
+          if (err || !result) return reject(err ?? new Error("Upload failed"));
+          resolve(result as { secure_url: string });
+        }
+      );
+      stream.end(req.file!.buffer);
+    });
+    res.json({ url: result.secure_url });
+  } catch (err) {
+    req.log.error({ err }, "Cloudinary upload failed");
+    res.status(500).json({ error: "Image upload failed" });
+  }
 });
 
 const postBodySchema = z.object({

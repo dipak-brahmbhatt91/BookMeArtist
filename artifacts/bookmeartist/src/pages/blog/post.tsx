@@ -316,16 +316,17 @@ export default function BlogPost() {
               {/* Content */}
               {post.content ? (
                 <div
-                  className="prose prose-invert prose-lg max-w-none
+                  className="prose prose-invert prose-base sm:prose-lg max-w-none overflow-x-hidden break-words
                     prose-headings:font-display prose-headings:text-white
-                    prose-h2:text-2xl prose-h3:text-xl
+                    prose-h2:text-xl sm:prose-h2:text-2xl prose-h3:text-lg sm:prose-h3:text-xl
                     prose-p:text-muted-foreground prose-p:leading-relaxed
                     prose-a:text-primary prose-a:no-underline hover:prose-a:underline
                     prose-strong:text-white
-                    prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
-                    prose-pre:bg-white/5 prose-pre:border prose-pre:border-white/10
+                    prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:break-all
+                    prose-pre:bg-white/5 prose-pre:border prose-pre:border-white/10 prose-pre:overflow-x-auto
                     prose-blockquote:border-primary prose-blockquote:text-muted-foreground
-                    prose-img:rounded-xl prose-img:border prose-img:border-white/10
+                    prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-img:max-w-full
+                    prose-table:block prose-table:overflow-x-auto
                     prose-li:text-muted-foreground
                     prose-hr:border-white/10"
                   dangerouslySetInnerHTML={{ __html: post.content }}

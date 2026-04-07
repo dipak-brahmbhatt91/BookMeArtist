@@ -6,6 +6,7 @@ import { CalendarIcon, Loader2, Send } from "lucide-react";
 import { format } from "date-fns";
 
 import { useCreateBooking, type Artist } from "@workspace/api-client-react";
+import { formatPrice } from "@/lib/currency";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
@@ -224,7 +225,7 @@ export function BookingModal({ artist }: BookingModalProps) {
                         <SelectItem value="custom">Custom Request</SelectItem>
                         {artist.packages.map((pkg) => (
                           <SelectItem key={pkg.name} value={pkg.name}>
-                            {pkg.name} - ${pkg.price}
+                            {pkg.name} - {formatPrice(pkg.price)}
                           </SelectItem>
                         ))}
                       </SelectContent>

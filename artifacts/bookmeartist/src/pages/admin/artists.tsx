@@ -1,4 +1,5 @@
 import { AdminLayout } from "@/components/admin-layout";
+import { CURRENCY, formatPrice } from "@/lib/currency";
 import { useState } from "react";
 import { 
   useListArtists, 
@@ -222,7 +223,7 @@ export default function AdminArtists() {
                 <SectionHeader icon={DollarSign} label="Details & Pricing" />
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Base Price ($) *</label>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Base Price ({CURRENCY.symbol}) *</label>
                     <Input type="number" min={0} value={formData.basePrice} onChange={e => set("basePrice", parseInt(e.target.value))} required className="bg-background border-white/10" />
                   </div>
                   <div>
@@ -542,7 +543,7 @@ export default function AdminArtists() {
                         </div>
                         <div className="text-muted-foreground text-xs">{artist.categoryName} · {artist.location}</div>
                       </td>
-                      <td className="px-6 py-4 font-medium text-white">${artist.basePrice}</td>
+                      <td className="px-6 py-4 font-medium text-white">{formatPrice(artist.basePrice)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-1 text-amber-400">
                           <Star className="w-3.5 h-3.5 fill-amber-400" />

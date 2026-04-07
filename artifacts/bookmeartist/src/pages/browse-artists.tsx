@@ -1,6 +1,7 @@
 import { useState, useEffect, useId, useMemo } from "react";
 import { useListArtists, useListCategories } from "@workspace/api-client-react";
 import { Search, X, SlidersHorizontal, MapPin, Sparkles } from "lucide-react";
+import { CURRENCY, formatPrice } from "@/lib/currency";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -41,7 +42,7 @@ export default function BrowseArtists() {
   const initialSearch = new URLSearchParams(window.location.search).get("search") ?? "";
   const [search, setSearch] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
-  const [maxPrice, setMaxPrice] = useState<number[]>([10000]);
+  const [maxPrice, setMaxPrice] = useState<number[]>([CURRENCY.maxBudget]);
   const [location, setLocation] = useState("");
   const [availability, setAvailability] = useState("");
   const [featuredOnly, setFeaturedOnly] = useState(false);
@@ -56,7 +57,7 @@ export default function BrowseArtists() {
   const { data: artistsRaw, isLoading } = useListArtists({
     search: debouncedSearch || undefined,
     category: selectedCategory,
-    maxPrice: maxPrice[0] < 10000 ? maxPrice[0] : undefined,
+    maxPrice: maxPrice[0] < CURRENCY.maxBudget ? maxPrice[0] : undefined,
     location: debouncedLocation || undefined,
     featured: featuredOnly ? true : undefined,
     availability: availability || undefined,
@@ -78,8 +79,8 @@ export default function BrowseArtists() {
       const cat = categoriesData?.find(c => c.slug === selectedCategory);
       chips.push({ key: "category", label: `${cat?.icon ?? ""} ${cat?.name ?? selectedCategory}`.trim() });
     }
-    if (maxPrice[0] < 10000) {
-      chips.push({ key: "price", label: `Up to $${maxPrice[0].toLocaleString()}` });
+    if (maxPrice[0] < CURRENCY.maxBudget) {
+      chips.push({ key: "price", label: `Up to ${formatPrice(maxPrice[0])}` });
     }
     if (debouncedLocation) chips.push({ key: "location", label: `📍 ${debouncedLocation}` });
     if (availability) chips.push({ key: "availability", label: availability.charAt(0).toUpperCase() + availability.slice(1) });
@@ -89,7 +90,7 @@ export default function BrowseArtists() {
 
   function clearFilter(key: string) {
     if (key === "category") setSelectedCategory(undefined);
-    if (key === "price") setMaxPrice([10000]);
+    if (key === "price") setMaxPrice([CURRENCY.maxBudget]);
     if (key === "location") setLocation("");
     if (key === "availability") setAvailability("");
     if (key === "featured") setFeaturedOnly(false);
@@ -98,7 +99,7 @@ export default function BrowseArtists() {
   function clearAll() {
     setSearch("");
     setSelectedCategory(undefined);
-    setMaxPrice([10000]);
+    setMaxPrice([CURRENCY.maxBudget]);
     setLocation("");
     setAvailability("");
     setFeaturedOnly(false);
@@ -144,21 +145,21 @@ export default function BrowseArtists() {
         <h3 className="font-bold mb-1 text-white text-sm uppercase tracking-wider flex justify-between items-baseline">
           <span>Max Budget</span>
           <span className="text-primary font-bold text-xs normal-case">
-            {maxPrice[0] >= 10000 ? "Any price" : `Up to $${maxPrice[0].toLocaleString()}`}
+            {maxPrice[0] >= CURRENCY.maxBudget ? "Any price" : `Up to ${formatPrice(maxPrice[0])}`}
           </span>
         </h3>
         <p className="text-xs text-muted-foreground mb-4">Filter by artist base price</p>
         <Slider
           min={0}
-          max={10000}
-          step={100}
+          max={CURRENCY.maxBudget}
+          step={CURRENCY.budgetStep}
           value={maxPrice}
           onValueChange={setMaxPrice}
           aria-label="Maximum price filter"
         />
         <div className="flex justify-between text-xs text-muted-foreground mt-2">
-          <span>$0</span>
-          <span>$10,000+</span>
+          <span>{CURRENCY.symbol}0</span>
+          <span>{formatPrice(CURRENCY.maxBudget)}+</span>
         </div>
       </div>
 

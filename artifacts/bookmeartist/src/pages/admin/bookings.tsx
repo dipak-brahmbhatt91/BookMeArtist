@@ -1,4 +1,5 @@
 import { AdminLayout } from "@/components/admin-layout";
+import { formatPrice } from "@/lib/currency";
 import { useState } from "react";
 import { useListBookings, useUpdateBookingStatus, useDeleteBooking, getListBookingsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -206,7 +207,7 @@ export default function AdminBookings() {
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Budget</div>
-                      <div className="font-bold text-primary">${selectedBooking.budget}</div>
+                      <div className="font-bold text-primary">{formatPrice(selectedBooking.budget)}</div>
                     </div>
                     {selectedBooking.packageName && (
                       <div className="col-span-2">

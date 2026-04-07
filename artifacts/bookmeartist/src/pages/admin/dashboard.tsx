@@ -1,6 +1,7 @@
 import { AdminLayout } from "@/components/admin-layout";
 import { useGetAdminStats, useListBookings } from "@workspace/api-client-react";
 import { Users, CalendarDays, DollarSign, Tags, Star, Clock, Activity, ShieldCheck } from "lucide-react";
+import { formatPrice } from "@/lib/currency";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -15,7 +16,7 @@ export default function AdminDashboard() {
     { label: "Total Artists", value: stats?.totalArtists || 0, icon: Users, color: "text-blue-400", bg: "bg-blue-400/10" },
     { label: "Total Bookings", value: stats?.totalBookings || 0, icon: CalendarDays, color: "text-emerald-400", bg: "bg-emerald-400/10" },
     { label: "Pending Bookings", value: stats?.pendingBookings || 0, icon: Clock, color: "text-amber-400", bg: "bg-amber-400/10" },
-    { label: "Total Revenue", value: `$${stats?.totalRevenue?.toLocaleString() || 0}`, icon: DollarSign, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Total Revenue", value: formatPrice(stats?.totalRevenue || 0), icon: DollarSign, color: "text-primary", bg: "bg-primary/10" },
     { label: "Featured Artists", value: stats?.featuredArtists || 0, icon: Star, color: "text-purple-400", bg: "bg-purple-400/10" },
     { label: "Categories", value: stats?.totalCategories || 0, icon: Tags, color: "text-rose-400", bg: "bg-rose-400/10" },
     { label: "User Accounts", value: stats?.totalUsers || 0, icon: ShieldCheck, color: "text-indigo-400", bg: "bg-indigo-400/10" },
@@ -97,7 +98,7 @@ export default function AdminDashboard() {
                       <td className="px-6 py-4 font-medium text-white">{booking.artistName}</td>
                       <td className="px-6 py-4 text-muted-foreground">{booking.clientName}</td>
                       <td className="px-6 py-4 text-muted-foreground">{format(new Date(booking.eventDate), "MMM d, yyyy")}</td>
-                      <td className="px-6 py-4 font-medium text-white">${booking.budget}</td>
+                      <td className="px-6 py-4 font-medium text-white">{formatPrice(booking.budget)}</td>
                       <td className="px-6 py-4">
                         <Badge variant="outline" className={
                           booking.status === 'pending' ? 'bg-amber-400/10 text-amber-400 border-amber-400/20' :

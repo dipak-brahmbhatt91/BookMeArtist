@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Star, MapPin, CheckCircle2, Clock, XCircle } from "lucide-react";
 import type { Artist } from "@workspace/api-client-react";
+import { formatPrice } from "@/lib/currency";
 
 interface ArtistCardProps {
   artist: Artist;
@@ -15,7 +16,7 @@ export function ArtistCard({ artist }: ArtistCardProps) {
     <Link
       href={`/artists/${artist.id}`}
       className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      aria-label={`View profile of ${artist.name}, ${artist.categoryName}${isAvailable ? ", currently available" : ""}, rated ${ratingDisplay} out of 5, starting at $${artist.basePrice}`}
+      aria-label={`View profile of ${artist.name}, ${artist.categoryName}${isAvailable ? ", currently available" : ""}, rated ${ratingDisplay} out of 5, starting at ${formatPrice(artist.basePrice)}`}
     >
       <div className="bg-card rounded-2xl overflow-hidden border border-white/10 shadow-lg shadow-black/20 hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] hover:-translate-y-2 transition-all duration-500 h-full flex flex-col relative group">
         
@@ -101,7 +102,7 @@ export function ArtistCard({ artist }: ArtistCardProps) {
           <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between">
             <div>
               <span className="text-xs text-muted-foreground block mb-0.5">Starting at</span>
-              <span className="font-bold text-lg text-white">${artist.basePrice}</span>
+              <span className="font-bold text-lg text-white">{formatPrice(artist.basePrice)}</span>
             </div>
             <div className="text-sm font-semibold text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300" aria-hidden="true">
               View Profile &rarr;

@@ -12,6 +12,7 @@ import {
   type ServicePackage,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatPrice } from "@/lib/currency";
 import { format } from "date-fns";
 import {
   Activity,
@@ -411,7 +412,7 @@ export default function Dashboard() {
         <DashboardCard icon={Activity} title="Pending Requests" value={pendingCount} tone="bg-warning/5" />
         <DashboardCard icon={CalendarDays} title="Confirmed Events" value={acceptedCount} tone="bg-success/5" />
         <DashboardCard icon={CheckCircle2} title="Completed Events" value={completedCount} tone="bg-blue-500/5" />
-        <DashboardCard icon={DollarSign} title="Projected Earnings" value={`$${totalEarnings.toLocaleString()}`} tone="bg-primary/5" />
+        <DashboardCard icon={DollarSign} title="Projected Earnings" value={formatPrice(totalEarnings)} tone="bg-primary/5" />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -585,7 +586,7 @@ export default function Dashboard() {
                           </div>
                           <div className="rounded-2xl border border-border bg-background/40 px-4 py-3">
                             <p className="text-muted-foreground mb-1">Budget</p>
-                            <p className="font-medium text-foreground">${booking.budget.toLocaleString()}</p>
+                            <p className="font-medium text-foreground">{formatPrice(booking.budget)}</p>
                           </div>
                         </div>
 
@@ -671,7 +672,7 @@ export default function Dashboard() {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="rounded-2xl border border-border bg-muted/20 px-4 py-3">
                       <p className="text-muted-foreground mb-1">Base Price</p>
-                      <p className="font-semibold text-foreground">${profileForm.basePrice || "0"}</p>
+                      <p className="font-semibold text-foreground">{formatPrice(Number(profileForm.basePrice) || 0)}</p>
                     </div>
                     <div className="rounded-2xl border border-border bg-muted/20 px-4 py-3">
                       <p className="text-muted-foreground mb-1">Availability</p>

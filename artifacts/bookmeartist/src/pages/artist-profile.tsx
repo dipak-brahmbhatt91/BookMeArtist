@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BookingModal } from "@/components/booking-modal";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageSeo } from "@/components/page-seo";
+import { CURRENCY, formatPrice } from "@/lib/currency";
 
 function Lightbox({ images, startIndex, onClose }: { images: string[]; startIndex: number; onClose: () => void }) {
   const [current, setCurrent] = useState(startIndex);
@@ -170,7 +171,7 @@ export default function ArtistProfile() {
           "offers": {
             "@type": "Offer",
             "price": artist.basePrice,
-            "priceCurrency": "USD",
+            "priceCurrency": CURRENCY.code,
             "availability": artist.availability === "available" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
           }
         }}
@@ -356,7 +357,7 @@ export default function ArtistProfile() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10" />
                 <h3 className="font-bold text-muted-foreground text-sm uppercase tracking-wider mb-2">Base Rate</h3>
                 <div className="text-4xl font-display font-extrabold text-foreground mb-6">
-                  ${artist.basePrice}<span className="text-lg text-muted-foreground font-sans font-normal"> / event</span>
+                  {formatPrice(artist.basePrice)}<span className="text-lg text-muted-foreground font-sans font-normal"> / event</span>
                 </div>
                 <BookingModal artist={artist} />
                 <p className="text-center text-xs text-muted-foreground mt-4">
@@ -381,7 +382,7 @@ export default function ArtistProfile() {
                       <div key={i} className="p-4 rounded-2xl border border-border/50 bg-background hover:border-primary/30 transition-colors">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-bold text-foreground">{pkg.name}</h4>
-                          <span className="font-bold text-primary shrink-0 ml-2">${pkg.price}</span>
+                          <span className="font-bold text-primary shrink-0 ml-2">{formatPrice(pkg.price)}</span>
                         </div>
                         <p className="text-sm text-muted-foreground mb-3">{pkg.description}</p>
                         {pkg.duration && (
@@ -404,7 +405,7 @@ export default function ArtistProfile() {
       <div className="fixed bottom-0 left-0 right-0 z-30 md:hidden p-4 bg-background/95 backdrop-blur-xl border-t border-white/10 flex items-center gap-4">
         <div className="shrink-0">
           <p className="text-xs text-muted-foreground">Starting at</p>
-          <p className="font-display font-bold text-xl text-white">${artist.basePrice}</p>
+          <p className="font-display font-bold text-xl text-white">{formatPrice(artist.basePrice)}</p>
         </div>
         <div className="flex-1">
           <BookingModal artist={artist} />

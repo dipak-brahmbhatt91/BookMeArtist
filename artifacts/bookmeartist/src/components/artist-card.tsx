@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Star, MapPin, CheckCircle2 } from "lucide-react";
+import { Star, MapPin, CheckCircle2, Clock, XCircle } from "lucide-react";
 import type { Artist } from "@workspace/api-client-react";
 
 interface ArtistCardProps {
@@ -8,6 +8,7 @@ interface ArtistCardProps {
 
 export function ArtistCard({ artist }: ArtistCardProps) {
   const isAvailable = artist.availability === "available";
+  const isBusy = artist.availability === "busy";
   const ratingDisplay = artist.rating.toFixed(1);
 
   return (
@@ -49,6 +50,16 @@ export function ArtistCard({ artist }: ArtistCardProps) {
                 <CheckCircle2 className="w-3 h-3" aria-hidden="true" /> Available
               </div>
             )}
+            {isBusy && (
+              <div className="bg-amber-500/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1">
+                <Clock className="w-3 h-3" aria-hidden="true" /> Busy
+              </div>
+            )}
+            {!isAvailable && !isBusy && (
+              <div className="bg-rose-500/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold text-white flex items-center gap-1">
+                <XCircle className="w-3 h-3" aria-hidden="true" /> Unavailable
+              </div>
+            )}
           </div>
         </div>
 
@@ -57,9 +68,12 @@ export function ArtistCard({ artist }: ArtistCardProps) {
             <h3 className="text-xl font-display font-bold text-white line-clamp-1 group-hover:text-primary transition-colors">
               {artist.name}
             </h3>
-            <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-1 rounded-md" aria-label={`Rated ${ratingDisplay} out of 5`}>
+            <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-1 rounded-md" aria-label={`Rated ${ratingDisplay} out of 5, ${artist.reviewCount} reviews`}>
               <Star className="w-3.5 h-3.5 fill-accent text-accent" aria-hidden="true" />
               <span className="text-sm font-bold text-white" aria-hidden="true">{ratingDisplay}</span>
+              {artist.reviewCount > 0 && (
+                <span className="text-xs text-muted-foreground" aria-hidden="true">({artist.reviewCount})</span>
+              )}
             </div>
           </div>
           

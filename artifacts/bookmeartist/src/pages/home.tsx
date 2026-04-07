@@ -13,10 +13,24 @@ import { PageSeo } from "@/components/page-seo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiUrl } from "@/lib/api-base";
 
+const CMS_LS_KEY = "bma:cms";
+
 function useCms() {
   return useQuery<Record<string, unknown>>({
     queryKey: ["cms"],
-    queryFn: () => fetch(apiUrl("/api/cms")).then((r) => r.json()),
+    queryFn: async () => {
+      const data = await fetch(apiUrl("/api/cms")).then((r) => r.json());
+      try { localStorage.setItem(CMS_LS_KEY, JSON.stringify(data)); } catch {}
+      return data;
+    },
+    initialData: () => {
+      try {
+        const raw = localStorage.getItem(CMS_LS_KEY);
+        return raw ? JSON.parse(raw) : undefined;
+      } catch {
+        return undefined;
+      }
+    },
     staleTime: 30_000,
   });
 }
@@ -198,7 +212,7 @@ export default function Home() {
 
   const s = (key: string, fallback: string): string => {
     const v = cms[key];
-    return typeof v === "string" ? v : fallback;
+    return typeof v === "string" && v.trim() !== "" ? v : fallback;
   };
 
   const brands: string[] = Array.isArray(cms["trusted_by.brands"])
@@ -297,7 +311,7 @@ export default function Home() {
               </span>
             </h1>
             
-            <p className="text-sm sm:text-lg md:text-2xl text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-2xl text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto sm:whitespace-pre-line">
               {s("hero.subtitle", "Skip the agency fees. Connect directly with verified musicians, photographers, and performers for your next masterpiece.")}
             </p>
 
@@ -426,7 +440,7 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-bold mb-4 sm:mb-6 text-white">
               {s("how_it_works.heading", "How It Works")}
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-xl">
+            <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-xl sm:whitespace-pre-line">
               {s("how_it_works.subheading", "From initial spark to final applause in three simple steps.")}
             </p>
           </div>
@@ -441,7 +455,7 @@ export default function Home() {
                   {step.num}
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-white">{step.title}</h3>
-                <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">{step.desc}</p>
+                <p className="text-muted-foreground text-base sm:text-lg leading-relaxed sm:whitespace-pre-line">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -456,7 +470,7 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-4 sm:mb-6 relative z-10">
               {s("artist_cta.heading", "Are you a creator?")}
             </h2>
-            <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-10 relative z-10">
+            <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-10 relative z-10 sm:whitespace-pre-line">
               {s("artist_cta.description", "Join thousands of artists managing their bookings, payments, and client relationships all in one place.")}
             </p>
             <div className="relative z-10">

@@ -449,7 +449,7 @@ export default function AdminArtists() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-muted-foreground mb-1 block">Price ($)</label>
+                        <label className="text-xs text-muted-foreground mb-1 block">Price ({CURRENCY.symbol})</label>
                         <Input 
                           type="number" 
                           min={0}

@@ -320,8 +320,8 @@ export default function Home() {
       {showApply && <ApplyModal onClose={() => setShowApply(false)} />}
       <div className="w-full flex flex-col">
 
-        {/* ── HERO — centered, clean, no 2-col ── */}
-        <section className="relative overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
+        {/* ── HERO ── */}
+        <section className="relative overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14 md:pt-28 md:pb-20">
           <div className="absolute inset-0 -z-10 bg-background">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-10%,rgba(99,102,241,0.18),transparent)]" />
             <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent" />
@@ -340,7 +340,7 @@ export default function Home() {
               </div>
 
               {/* Headline */}
-              <h1 className="text-[2.1rem] leading-[1.1] sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight text-white mb-3 sm:mb-4">
+              <h1 className="text-[2.1rem] leading-[1.1] sm:text-5xl md:text-6xl lg:text-7xl font-display font-extrabold tracking-tight mb-3 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary via-cyan-400 to-accent">
                 {s("hero.headline", "Book the Right Artist for Every Occasion")}
               </h1>
 

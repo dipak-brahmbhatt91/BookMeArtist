@@ -10,7 +10,7 @@ import {
   useListArtists,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Users, Plus, Trash2, Edit2, Shield, Palette, Key, User, Lock, ShieldCheck } from "lucide-react";
+import { Users, Plus, Trash2, Edit2, Shield, Palette, Key, User, Lock, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +54,7 @@ export default function AdminUsers() {
   };
 
   const [form, setForm] = useState(initialFormState);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (prefillApplied || isOpen) return;
@@ -116,6 +117,7 @@ export default function AdminUsers() {
 
       queryClient.invalidateQueries({ queryKey: getListAdminUsersQueryKey() });
       setIsOpen(false);
+      setShowPassword(false);
       setForm(initialFormState);
     } catch (err: any) {
       const message = err?.message?.includes("409") || err?.message?.includes("exists")
@@ -191,14 +193,25 @@ export default function AdminUsers() {
                   <div className="relative">
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <Input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={form.password}
                       onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                       placeholder={isEditingOtherAdmin ? "Cannot change another admin's password" : "••••••••"}
-                      className="pl-9 bg-slate-800 border-slate-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="pl-9 pr-10 bg-slate-800 border-slate-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
                       required={!editingId && !isEditingOtherAdmin}
                       disabled={isEditingOtherAdmin}
                     />
+                    {!isEditingOtherAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(s => !s)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-pressed={showPassword}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+                      </button>
+                    )}
                   </div>
                 </div>
 

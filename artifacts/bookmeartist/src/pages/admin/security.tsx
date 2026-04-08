@@ -78,8 +78,8 @@ export default function AdminSecurity() {
       toast({ title: "Passwords don't match", description: "New password and confirmation must match.", variant: "destructive" });
       return;
     }
-    if (passwordForm.newPassword.length < 6) {
-      toast({ title: "Too short", description: "Password must be at least 6 characters.", variant: "destructive" });
+    if (passwordForm.newPassword.length < 12) {
+      toast({ title: "Too short", description: "Password must be at least 12 characters.", variant: "destructive" });
       return;
     }
     setPasswordLoading(true);
@@ -183,7 +183,7 @@ export default function AdminSecurity() {
                   id="newPw"
                   value={passwordForm.newPassword}
                   onChange={(v) => setPasswordForm((f) => ({ ...f, newPassword: v }))}
-                  placeholder="At least 6 characters"
+                  placeholder="At least 12 characters"
                 />
               </div>
               <div className="space-y-1.5">

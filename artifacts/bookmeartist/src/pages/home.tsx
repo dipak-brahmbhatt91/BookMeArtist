@@ -1,17 +1,17 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Music, Camera, Palette, Mic2, Compass, ArrowRight, Star, Sparkles, Zap, Flame, X, CheckCircle } from "lucide-react";
+import { Search, Compass, ArrowRight, Zap, X, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ArtistCard } from "@/components/artist-card";
-import { useListArtists, useListCategories } from "@workspace/api-client-react";
+import { useListArtists, useListCategories, type Artist } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageSeo } from "@/components/page-seo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { apiUrl } from "@/lib/api-base";
+import { apiUrl, APP_BASE_URL } from "@/lib/api-base";
 
 const CMS_LS_KEY = "bma:cms";
 
@@ -34,8 +34,6 @@ function useCms() {
     staleTime: 30_000,
   });
 }
-
-type HowStep = { num: string; title: string; desc: string };
 
 function ApplyModal({ onClose }: { onClose: () => void }) {
   const { toast } = useToast();
@@ -197,9 +195,93 @@ function ApplyModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+/* ─────────────────────────────────────────────────────────
+   Reusable horizontal artist row with prev / next buttons
+───────────────────────────────────────────────────────── */
+function ArtistScrollRow({
+  artists,
+  isLoading,
+  title,
+  accentColor = "bg-primary",
+  viewAllHref = "/artists",
+}: {
+  artists: Artist[];
+  isLoading: boolean;
+  title: string;
+  accentColor?: string;
+  viewAllHref?: string;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  function slide(dir: "left" | "right") {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === "right" ? 260 : -260, behavior: "smooth" });
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 sm:mb-6 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2.5">
+          <div className={`w-1 h-5 rounded-full ${accentColor}`} />
+          <h2 className="text-base sm:text-xl font-display font-bold text-white">{title}</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Prev / Next — visible on all viewports */}
+          <button
+            onClick={() => slide("left")}
+            aria-label="Scroll left"
+            className="flex w-8 h-8 rounded-full bg-white/5 border border-white/10 items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
+          >
+            <ChevronLeft className="w-4 h-4 text-white" />
+          </button>
+          <button
+            onClick={() => slide("right")}
+            aria-label="Scroll right"
+            className="flex w-8 h-8 rounded-full bg-white/5 border border-white/10 items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
+          >
+            <ChevronRight className="w-4 h-4 text-white" />
+          </button>
+          <Link href={viewAllHref} className="flex items-center gap-1 text-primary text-sm font-semibold hover:text-accent transition-colors ml-1">
+            See all <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Scroll track */}
+      {isLoading ? (
+        <div className="flex gap-4 px-4 sm:px-6 lg:px-8">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="shrink-0 w-[220px] sm:w-[240px] h-[320px] rounded-2xl bg-white/5 animate-pulse border border-white/5" />
+          ))}
+        </div>
+      ) : artists.length > 0 ? (
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto pb-1 snap-x snap-mandatory px-4 sm:px-6 lg:px-8 scrollbar-hide"
+        >
+          {artists.map((artist) => (
+            <div key={artist.id} className="snap-start shrink-0 w-[220px] sm:w-[240px]">
+              <ArtistCard artist={artist} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mx-4 sm:mx-6 lg:mx-8 text-center py-12 bg-card rounded-2xl border border-dashed border-white/10">
+          <Compass className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-muted-foreground text-sm">No artists yet.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
-  const { data: featuredArtistsRaw, isLoading } = useListArtists({ featured: true });
+  const { data: featuredArtistsRaw, isLoading: featuredLoading } = useListArtists({ featured: true });
   const featuredArtists = Array.isArray(featuredArtistsRaw) ? featuredArtistsRaw : [];
+  const { data: allArtistsRaw, isLoading: allLoading } = useListArtists({});
+  const allArtists = Array.isArray(allArtistsRaw) ? allArtistsRaw : [];
   const { data: cms = {} } = useCms();
   const [showApply, setShowApply] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -215,281 +297,219 @@ export default function Home() {
     return typeof v === "string" && v.trim() !== "" ? v : fallback;
   };
 
-  const brands: string[] = Array.isArray(cms["trusted_by.brands"])
-    ? (cms["trusted_by.brands"] as string[])
-    : ["Spotify", "Netflix", "Vogue", "SXSW", "RedBull"];
-
-  const steps: HowStep[] = [
-    (cms["how_it_works.step_1"] as HowStep) || { num: "01", title: "Find the Vibe", desc: "Search portfolios, compare transparent pricing, and read verified reviews." },
-    (cms["how_it_works.step_2"] as HowStep) || { num: "02", title: "Send the Brief", desc: "Outline your vision, budget, and dates directly to the artist's dashboard." },
-    (cms["how_it_works.step_3"] as HowStep) || { num: "03", title: "Make Magic", desc: "Once accepted, collaborate closely and watch your creative project come to life." },
-  ];
-
-  const categories = [
-    { name: "Music & Bands", icon: Music, gradient: "from-blue-500 to-cyan-400", bg: "bg-blue-500/10" },
-    { name: "Photography", icon: Camera, gradient: "from-amber-500 to-orange-400", bg: "bg-amber-500/10" },
-    { name: "Painters", icon: Palette, gradient: "from-rose-500 to-pink-400", bg: "bg-rose-500/10" },
-    { name: "Performers", icon: Mic2, gradient: "from-purple-500 to-indigo-400", bg: "bg-purple-500/10" },
-  ];
+  const { data: dbCategories = [] } = useListCategories();
 
   return (
     <>
       <PageSeo
         title="Book Verified Musicians, Photographers & Performers"
-        description="Discover and book world-class creative talent for your next event or project. Verified musicians, photographers, dancers, and performers. No agency fees — book directly."
+        description="Discover and book verified artists for weddings, corporate events, and parties across India. Direct booking, no agency fees."
         canonical="/"
-        schema={[
-          {
-            "@type": "WebSite",
-            "@id": "https://bookmeartist.replit.app/#website",
-            "url": "https://bookmeartist.replit.app/",
-            "name": "BookMeArtist",
-            "potentialAction": {
-              "@type": "SearchAction",
-              "target": {
-                "@type": "EntryPoint",
-                "urlTemplate": "https://bookmeartist.replit.app/artists?search={search_term_string}"
-              },
-              "query-input": "required name=search_term_string"
-            }
-          },
-          {
-            "@type": "Organization",
-            "name": "BookMeArtist",
-            "url": "https://bookmeartist.replit.app/",
-            "description": "Artist booking marketplace connecting clients with verified musicians, photographers, dancers, and creative professionals."
+        schema={[{
+          "@type": "WebSite",
+          "@id": `${APP_BASE_URL}/#website`,
+          "url": `${APP_BASE_URL}/`,
+          "name": "BookMeArtist",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": { "@type": "EntryPoint", "urlTemplate": `${APP_BASE_URL}/artists?search={search_term_string}` },
+            "query-input": "required name=search_term_string"
           }
-        ]}
+        }]}
       />
-    {showApply && <ApplyModal onClose={() => setShowApply(false)} />}
-    <div className="w-full flex flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-14 pb-16 sm:pt-24 sm:pb-32 lg:pt-32 lg:pb-40">
-        <div className="absolute inset-0 -z-10 bg-background">
-          <img 
-            src={`${import.meta.env.BASE_URL}images/hero-abstract.png`}
-            alt="Abstract vibrant background"
-            className="w-full h-full object-cover opacity-30 mix-blend-screen"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background"></div>
-          {/* Animated glow orbs */}
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[100px] mix-blend-screen animate-pulse" style={{ animationDelay: '2s' }}></div>
-        </div>
+      {showApply && <ApplyModal onClose={() => setShowApply(false)} />}
+      <div className="w-full flex flex-col">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          {/* Floating elements */}
-          <motion.div 
-            animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="hidden md:flex absolute top-10 left-10 w-16 h-16 bg-card border border-white/10 rounded-2xl items-center justify-center shadow-xl backdrop-blur-md"
-          >
-            <Sparkles className="w-8 h-8 text-accent" />
-          </motion.div>
-          <motion.div 
-            animate={{ y: [0, 15, 0], rotate: [0, -5, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            className="hidden md:flex absolute bottom-20 right-10 w-20 h-20 bg-card border border-white/10 rounded-full items-center justify-center shadow-xl backdrop-blur-md"
-          >
-            <Flame className="w-10 h-10 text-rose-500" />
-          </motion.div>
+        {/* ── HERO — centered, clean, no 2-col ── */}
+        <section className="relative overflow-hidden pt-14 pb-10 sm:pt-20 sm:pb-14">
+          <div className="absolute inset-0 -z-10 bg-background">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-10%,rgba(99,102,241,0.18),transparent)]" />
+            <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent" />
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="max-w-4xl mx-auto"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white font-medium text-sm mb-8 backdrop-blur-md shadow-lg" aria-label={s("hero.badge_text", "The new standard for creative bookings")}>
-              <Zap className="w-4 h-4 text-accent" aria-hidden="true" />
-              <span className="text-white/80" aria-hidden="true">{s("hero.badge_text", "The new standard for creative bookings")}</span>
-            </div>
-            
-            <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-display font-extrabold tracking-tight leading-[1.05] mb-6 sm:mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/80">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-indigo-400 to-accent drop-shadow-sm">
-                {s("hero.headline", "Book the World's Best Creators")}
-              </span>
-            </h1>
-            
-            <p className="text-base sm:text-lg md:text-2xl text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto sm:whitespace-pre-line">
-              {s("hero.subtitle", "Skip the agency fees. Connect directly with verified musicians, photographers, and performers for your next masterpiece.")}
-            </p>
-
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="p-[2px] rounded-2xl bg-gradient-to-r from-primary to-accent max-w-2xl mx-auto shadow-[0_0_40px_rgba(99,102,241,0.3)]"
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <div className="flex flex-col sm:flex-row gap-2 bg-card p-2 rounded-[14px]" role="search">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/25 text-primary text-xs font-semibold mb-5">
+                <Zap className="w-3 h-3" />
+                {s("hero.badge_text", "India's Artist Marketplace")}
+              </div>
+
+              {/* Headline */}
+              <h1 className="text-[2.1rem] leading-[1.1] sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight text-white mb-3 sm:mb-4">
+                {s("hero.headline", "Book the Right Artist for Every Occasion")}
+              </h1>
+
+              {/* Subtitle */}
+              <p className="text-muted-foreground text-sm sm:text-lg mb-7 leading-relaxed max-w-xl mx-auto">
+                {s("hero.subtitle", "Verified musicians, photographers & performers. Direct booking, no agency fees.")}
+              </p>
+
+              {/* Search bar */}
+              <div
+                className="flex gap-1.5 bg-white/[0.07] backdrop-blur-xl border border-white/10 rounded-2xl p-1.5 max-w-xl mx-auto mb-5 shadow-[0_0_0_1px_rgba(99,102,241,0.15),0_8px_32px_rgba(0,0,0,0.3)]"
+                role="search"
+              >
                 <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" aria-hidden="true" />
-                  <label htmlFor="hero-search" className="sr-only">Search for artists, musicians, photographers</label>
-                  <Input 
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 pointer-events-none" />
+                  <label htmlFor="hero-search" className="sr-only">Search artists</label>
+                  <Input
                     id="hero-search"
                     type="search"
-                    placeholder={s("hero.search_placeholder", "E.g. 'Wedding Photographer in NYC'")}
-                    className="pl-12 border-0 bg-transparent h-14 text-lg focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none text-white placeholder:text-muted-foreground/70"
+                    placeholder={s("hero.search_placeholder", "Singer for wedding in Mumbai…")}
+                    className="pl-9 border-0 bg-transparent h-11 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none text-white placeholder:text-muted-foreground/55"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && handleSearch()}
                     autoComplete="off"
                   />
                 </div>
-                <Button size="lg" onClick={handleSearch} className="h-14 px-5 sm:px-8 rounded-xl font-bold text-base sm:text-lg bg-primary hover:bg-primary/90 text-white transition-all shadow-[0_0_15px_rgba(99,102,241,0.4)] hover:shadow-[0_0_25px_rgba(99,102,241,0.6)] whitespace-nowrap">
-                  {s("hero.cta_text", "Explore Now")}
+                <Button
+                  onClick={handleSearch}
+                  className="h-11 px-6 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 text-white shrink-0"
+                >
+                  {s("hero.cta_text", "Search")}
                 </Button>
               </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Trusted By Strip */}
-      <section className="border-y border-white/5 bg-black/40 py-8 overflow-hidden backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground font-semibold uppercase tracking-widest mb-6">
-            {s("trusted_by.label", "Trusted by innovative creators at")}
-          </p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-            {brands.map((brand, i) => (
-              <div key={i} className="font-display font-black text-2xl">{brand}</div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Grid */}
-      <section className="py-14 sm:py-20 md:py-24 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-end mb-8 sm:mb-12">
-            <div>
-              <h2 className="text-2xl sm:text-3xl md:text-5xl font-display font-bold text-white mb-2 sm:mb-4">Discover by Craft</h2>
-              <p className="text-muted-foreground text-sm sm:text-lg">Find the exact flavor of creativity you need.</p>
-            </div>
-            <Link href="/artists" className="hidden sm:flex items-center text-primary font-bold hover:text-accent transition-colors">
-              View All Categories <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map((cat, i) => (
-              <Link key={i} href={`/artists?category=${cat.name.split(' ')[0]}`}>
-                <div className="group relative bg-card rounded-3xl p-8 border border-white/5 hover:border-white/20 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
-                  
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 ${cat.bg} border border-white/10 group-hover:scale-110 transition-transform duration-500`}>
-                    <cat.icon className={`w-8 h-8 text-transparent bg-clip-text bg-gradient-to-br ${cat.gradient}`} />
-                    <cat.icon className="w-8 h-8 absolute opacity-80" style={{ color: "white" }} />
-                  </div>
-                  
-                  <h3 className="font-display font-bold text-2xl text-white mb-2">{cat.name}</h3>
-                  <div className="flex items-center text-sm text-muted-foreground group-hover:text-white transition-colors">
-                    Explore <ArrowRight className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                  </div>
+              {/* Category chips */}
+              {dbCategories.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {dbCategories.slice(0, 7).map((cat) => (
+                    <Link key={cat.id} href={`/artists?category=${cat.slug}`}>
+                      <span className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/65 text-xs hover:bg-white/10 hover:text-white transition-colors cursor-pointer whitespace-nowrap">
+                        <span>{cat.icon}</span>{cat.name}
+                      </span>
+                    </Link>
+                  ))}
+                  <Link href="/artists">
+                    <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs hover:bg-primary/20 transition-colors cursor-pointer whitespace-nowrap font-medium">
+                      More <ChevronRight className="w-3 h-3" />
+                    </span>
+                  </Link>
                 </div>
-              </Link>
-            ))}
+              )}
+            </motion.div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Featured Artists */}
-      <section className="py-14 sm:py-20 md:py-24 bg-card border-y border-white/5 relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-1/3 h-full bg-primary/5 blur-[150px] pointer-events-none"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex justify-between items-end mb-8 sm:mb-12 md:mb-16">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold mb-4">
-                <Star className="w-4 h-4 fill-primary" /> Curated Selection
-              </div>
-              <h2 className="text-2xl sm:text-3xl md:text-5xl font-display font-bold text-white">Trending Talent</h2>
+        {/* ── FEATURED ARTISTS — scrollable, one row, with arrow buttons ── */}
+        <section className="pt-8 pb-10 sm:pt-10 sm:pb-12 bg-background">
+          <div className="max-w-7xl mx-auto">
+            <ArtistScrollRow
+              artists={featuredArtists}
+              isLoading={featuredLoading}
+              title="Featured Artists"
+              accentColor="bg-primary"
+              viewAllHref="/artists?featured=true"
+            />
+          </div>
+        </section>
+
+        {/* ── BOOK BY OCCASION ── */}
+        <section className="py-8 sm:py-12 bg-card border-y border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2.5 mb-5 sm:mb-7">
+              <div className="w-1 h-5 rounded-full bg-rose-400" />
+              <h2 className="text-base sm:text-xl font-display font-bold text-white">Book by Occasion</h2>
             </div>
-            <Button variant="outline" asChild className="hidden sm:flex border-white/10 hover:bg-white/5 text-white">
-              <Link href="/artists">See All Talent</Link>
+
+            {/* 2 cols on mobile → 3 on sm → 6 on lg */}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+              {[
+                { emoji: "💍", label: "Wedding",       q: "Wedding",   bg: "from-rose-500/20 to-pink-600/10",     border: "border-rose-500/20"    },
+                { emoji: "🏢", label: "Corporate",     q: "Corporate", bg: "from-blue-500/20 to-cyan-600/10",     border: "border-blue-500/20"    },
+                { emoji: "🎂", label: "Birthday",      q: "Birthday",  bg: "from-amber-500/20 to-orange-600/10",  border: "border-amber-500/20"   },
+                { emoji: "🎤", label: "Live Concert",  q: "Concert",   bg: "from-purple-500/20 to-indigo-600/10", border: "border-purple-500/20"  },
+                { emoji: "🎪", label: "Festival",      q: "Festival",  bg: "from-emerald-500/20 to-teal-600/10",  border: "border-emerald-500/20" },
+                { emoji: "🥂", label: "Private Party", q: "Party",     bg: "from-fuchsia-500/20 to-violet-600/10",border: "border-fuchsia-500/20" },
+              ].map((occ) => (
+                <Link key={occ.label} href={`/artists?search=${encodeURIComponent(occ.q)}`}>
+                  <div className={`group bg-gradient-to-br ${occ.bg} border ${occ.border} hover:border-white/25 rounded-2xl p-3 sm:p-5 text-center transition-all duration-200 hover:-translate-y-0.5 cursor-pointer h-full flex flex-col items-center justify-center gap-1.5 sm:gap-2`}>
+                    <div className="text-2xl sm:text-4xl">{occ.emoji}</div>
+                    <p className="text-white font-semibold text-[11px] sm:text-sm leading-tight">{occ.label}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── ALL ARTISTS — second scroll row ── */}
+        <section className="pt-8 pb-10 sm:pt-10 sm:pb-12 bg-background">
+          <div className="max-w-7xl mx-auto">
+            <ArtistScrollRow
+              artists={allArtists.slice(0, 16)}
+              isLoading={allLoading}
+              title="Browse Artists"
+              accentColor="bg-emerald-400"
+              viewAllHref="/artists"
+            />
+          </div>
+        </section>
+
+        {/* ── BROWSE BY CATEGORY ── */}
+        <section className="py-8 sm:py-12 bg-card border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-5 sm:mb-7">
+              <div className="flex items-center gap-2.5">
+                <div className="w-1 h-5 rounded-full bg-indigo-400" />
+                <h2 className="text-base sm:text-xl font-display font-bold text-white">Browse by Category</h2>
+              </div>
+              <Link href="/artists" className="flex items-center gap-1 text-primary text-xs sm:text-sm font-semibold hover:text-accent transition-colors">
+                All <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {dbCategories.length > 0 ? (
+              /* 4 cols on mobile → up to 8 on desktop — fixed equal cells, no scroll */
+              <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+                {dbCategories.map((cat) => (
+                  <Link key={cat.id} href={`/artists?category=${cat.slug}`}>
+                    <div className="group bg-white/[0.03] border border-white/5 hover:border-primary/30 hover:bg-white/[0.06] rounded-2xl p-3 sm:p-4 text-center transition-all duration-200 cursor-pointer">
+                      <div className="text-xl sm:text-3xl mb-1.5 sm:mb-2">{cat.icon}</div>
+                      <p className="text-white/70 group-hover:text-white font-medium text-[10px] sm:text-xs leading-tight transition-colors">{cat.name}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                {[1,2,3,4,5,6,7,8].map(i => (
+                  <div key={i} className="h-20 rounded-2xl bg-white/5 animate-pulse border border-white/5" />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ── ARTIST CTA — compact banner ── */}
+        <section className="py-10 sm:py-12 border-t border-white/8 bg-gradient-to-r from-primary/10 via-background to-accent/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">For Artists</p>
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-white">
+                {s("artist_cta.heading", "Get discovered. Start earning.")}
+              </h2>
+              <p className="text-muted-foreground text-sm mt-1 max-w-sm">
+                {s("artist_cta.description", "Join thousands of artists receiving bookings directly from event organisers.")}
+              </p>
+            </div>
+            <Button
+              size="lg"
+              onClick={() => setShowApply(true)}
+              className="shrink-0 bg-white text-black hover:bg-white/90 font-bold px-8 h-11 rounded-xl"
+            >
+              {s("artist_cta.button_text", "Apply as Artist")}
             </Button>
           </div>
+        </section>
 
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[1,2,3,4].map(i => (
-                <div key={i} className="h-[420px] rounded-3xl bg-white/5 animate-pulse border border-white/10"></div>
-              ))}
-            </div>
-          ) : featuredArtists && featuredArtists.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {featuredArtists.slice(0, 4).map((artist) => (
-                <ArtistCard key={artist.id} artist={artist} />
-              ))}
-            </div>
-          ) : (
-             <div className="text-center py-24 bg-background/50 rounded-3xl border border-dashed border-white/10 backdrop-blur-sm">
-               <Compass className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-               <h3 className="text-2xl font-bold text-white mb-2">No featured artists yet</h3>
-               <p className="text-muted-foreground mb-8">We are currently onboarding our exclusive talent.</p>
-               <Button asChild className="bg-primary text-white"><Link href="/artists">Browse All</Link></Button>
-             </div>
-          )}
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="py-14 sm:py-24 md:py-32 bg-background relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-16 md:mb-20">
-            <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-bold mb-4 sm:mb-6 text-white">
-              {s("how_it_works.heading", "How It Works")}
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-xl sm:whitespace-pre-line">
-              {s("how_it_works.subheading", "From initial spark to final applause in three simple steps.")}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 relative">
-            {/* Gradient Line connector */}
-            <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-30"></div>
-            
-            {steps.map((step, i) => (
-              <div key={i} className="relative z-10 bg-card border border-white/5 p-6 sm:p-8 md:p-10 rounded-3xl hover:border-primary/30 transition-colors">
-                <div className="text-4xl sm:text-5xl font-display font-black text-transparent bg-clip-text bg-gradient-to-br from-white/20 to-white/5 mb-4 sm:mb-6">
-                  {step.num}
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-white">{step.title}</h3>
-                <p className="text-muted-foreground text-base sm:text-lg leading-relaxed sm:whitespace-pre-line">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Artist CTA Split Layout */}
-      <section className="border-t border-white/10">
-        <div className="grid md:grid-cols-2">
-          <div className="bg-card p-8 sm:p-12 md:p-16 lg:p-24 flex flex-col justify-center border-r border-white/10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px]"></div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-4 sm:mb-6 relative z-10">
-              {s("artist_cta.heading", "Are you a creator?")}
-            </h2>
-            <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-10 relative z-10 sm:whitespace-pre-line">
-              {s("artist_cta.description", "Join thousands of artists managing their bookings, payments, and client relationships all in one place.")}
-            </p>
-            <div className="relative z-10">
-              <Button size="lg" onClick={() => setShowApply(true)} className="bg-white text-black hover:bg-white/90 font-bold text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 rounded-xl">
-                {s("artist_cta.button_text", "Apply as Artist")}
-              </Button>
-            </div>
-          </div>
-          <div className="relative min-h-[220px] sm:min-h-[300px] md:min-h-0 bg-muted">
-            <img 
-              src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=1200" 
-              className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity opacity-40"
-              alt="Artist performing"
-            />
-            <div className="absolute inset-0 bg-gradient-to-tr from-primary/80 to-accent/40 mix-blend-multiply"></div>
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
     </>
   );
 }

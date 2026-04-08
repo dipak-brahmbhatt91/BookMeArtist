@@ -1,7 +1,8 @@
 import { Helmet } from "react-helmet-async";
+import { APP_BASE_URL } from "@/lib/api-base";
 
 const SITE_NAME = "BookMeArtist";
-const BASE_URL = "https://bookmeartist.replit.app";
+const BASE_URL = APP_BASE_URL;
 const DEFAULT_IMAGE = `${BASE_URL}/opengraph.jpg`;
 
 interface PageSeoProps {

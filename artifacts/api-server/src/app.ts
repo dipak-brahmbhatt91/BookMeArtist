@@ -65,6 +65,14 @@ async function ensureCoreTables() {
         "created_at" timestamp NOT NULL DEFAULT now()
       );
     `);
+
+    // Indexes for foreign keys and frequent query columns
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_artists_category_id ON artists(category_id);
+      CREATE INDEX IF NOT EXISTS idx_bookings_artist_id ON bookings(artist_id);
+      CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+    `);
+
     logger.info("Core tables ensured");
   } catch (err) {
     logger.error({ err }, "Failed to ensure core tables");
@@ -294,6 +302,11 @@ async function ensureBlogPostsTable() {
       ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "reading_time" integer NOT NULL DEFAULT 0;
       ALTER TABLE "blog_posts" ADD COLUMN IF NOT EXISTS "published_at" timestamp;
     `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
+      CREATE INDEX IF NOT EXISTS idx_blog_posts_status ON blog_posts(status);
+    `);
+
     logger.info("Blog posts table ensured");
   } catch (err) {
     logger.error({ err }, "Failed to ensure blog_posts table");
@@ -336,15 +349,22 @@ app.use(
   }),
 );
 
-app.use(cors({ origin: true, credentials: true }));
+const isProduction = process.env.NODE_ENV === "production";
+if (isProduction && !process.env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET environment variable must be set in production");
+}
+const sessionSecret = process.env.SESSION_SECRET ?? "dev-secret-local-only";
+const allowedOrigin = process.env.ALLOWED_ORIGIN ?? "http://localhost:5173";
+
+app.use(cors({
+  origin: isProduction ? allowedOrigin : true,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files statically from the "uploads" directory
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-
-const sessionSecret = process.env.SESSION_SECRET ?? "dev-secret-change-in-production";
-const isProduction = process.env.NODE_ENV === "production";
 
 app.use(
   session({

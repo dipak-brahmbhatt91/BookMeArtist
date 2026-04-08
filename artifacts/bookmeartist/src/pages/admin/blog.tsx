@@ -15,7 +15,7 @@ import {
   List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, Upload,
   Clock, Search, FileText, Sparkles, X, ExternalLink, Undo, Redo, RefreshCw
 } from "lucide-react";
-import { apiUrl } from "@/lib/api-base";
+import { apiUrl, APP_BASE_URL } from "@/lib/api-base";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -745,7 +745,7 @@ export default function AdminBlog() {
                     {form.metaTitle || form.title || "Post Title"}
                   </p>
                   <p className="text-green-700 text-xs">
-                    bookmeartist.replit.app/blog/{form.slug || "post-slug"}
+                    {APP_BASE_URL || "yourdomain.com"}/blog/{form.slug || "post-slug"}
                   </p>
                   <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">
                     {form.metaDescription || form.excerpt || "Post description will appear here in search results."}

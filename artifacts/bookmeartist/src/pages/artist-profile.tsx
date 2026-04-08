@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BookingModal } from "@/components/booking-modal";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageSeo } from "@/components/page-seo";
+import { APP_BASE_URL } from "@/lib/api-base";
 import { CURRENCY, formatPrice } from "@/lib/currency";
 
 function Lightbox({ images, startIndex, onClose }: { images: string[]; startIndex: number; onClose: () => void }) {
@@ -165,7 +166,7 @@ export default function ArtistProfile() {
           "name": artistName,
           "jobTitle": artistCategory,
           "description": artist.bio || undefined,
-          "url": `https://bookmeartist.replit.app/artists/${artist.id}`,
+          "url": `${APP_BASE_URL}/artists/${artist.id}`,
           "image": profileImage,
           "address": artist.location ? { "@type": "PostalAddress", "addressLocality": artistLocation } : undefined,
           "offers": {

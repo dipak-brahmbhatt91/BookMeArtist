@@ -2,6 +2,7 @@ import { useState, useEffect, useId, useMemo } from "react";
 import { useListArtists, useListCategories } from "@workspace/api-client-react";
 import { Search, X, SlidersHorizontal, MapPin, Sparkles } from "lucide-react";
 import { CURRENCY, formatPrice } from "@/lib/currency";
+import { APP_BASE_URL } from "@/lib/api-base";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -238,7 +239,7 @@ export default function BrowseArtists() {
           "@type": "CollectionPage",
           "name": "Browse Artists | BookMeArtist",
           "description": "Browse and book verified creative professionals including musicians, photographers, dancers, and performers.",
-          "url": "https://bookmeartist.onrender.com/artists"
+          "url": `${APP_BASE_URL}/artists`
         }}
       />
 

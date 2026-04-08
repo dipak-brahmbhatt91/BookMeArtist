@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { PageSeo } from "@/components/page-seo";
 import { apiUrl } from "@/lib/api-base";
 
-const BASE_URL = "https://bookmeartist.replit.app";
+import { APP_BASE_URL } from "@/lib/api-base";
+const BASE_URL = APP_BASE_URL;
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 

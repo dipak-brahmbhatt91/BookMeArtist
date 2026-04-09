@@ -389,14 +389,31 @@ async function ensureBlogPostsTable() {
   }
 }
 
-await ensureCoreTables();
-await ensureSessionTable();
-await ensureApplicationsTable();
-await ensureSiteContentTable();
-await ensureBlogPostsTable();
-await runMigrations();
-await ensureDefaultContent();
-await ensureAdminUser();
+async function withRetry<T>(fn: () => Promise<T>, name: string, maxAttempts = 8, delayMs = 5000): Promise<T> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      const isNetworkErr = err?.code === "EAI_AGAIN" || err?.code === "ECONNREFUSED" || err?.code === "ETIMEDOUT";
+      if (isNetworkErr && attempt < maxAttempts) {
+        logger.warn({ attempt, name }, `DB not reachable, retrying in ${delayMs / 1000}s...`);
+        await new Promise(res => setTimeout(res, delayMs));
+      } else {
+        throw err;
+      }
+    }
+  }
+  throw new Error(`${name} failed after ${maxAttempts} attempts`);
+}
+
+await withRetry(ensureCoreTables, "ensureCoreTables");
+await withRetry(ensureSessionTable, "ensureSessionTable");
+await withRetry(ensureApplicationsTable, "ensureApplicationsTable");
+await withRetry(ensureSiteContentTable, "ensureSiteContentTable");
+await withRetry(ensureBlogPostsTable, "ensureBlogPostsTable");
+await withRetry(runMigrations, "runMigrations");
+await withRetry(ensureDefaultContent, "ensureDefaultContent");
+await withRetry(ensureAdminUser, "ensureAdminUser");
 
 const PgSession = connectPgSimple(session);
 

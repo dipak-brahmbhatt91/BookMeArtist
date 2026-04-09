@@ -3,7 +3,7 @@ import { pool } from "@workspace/db";
 
 const router: IRouter = Router();
 
-const BASE_URL = process.env.SITE_URL ?? "https://bookmeartist.onrender.com";
+const BASE_URL = process.env.SITE_URL ?? "https://www.bookmeartist.com";
 
 router.get("/sitemap.xml", async (_req, res) => {
   try {

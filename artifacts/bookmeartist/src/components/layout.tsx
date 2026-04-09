@@ -164,38 +164,77 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="bg-background border-t border-white/5 mt-auto pt-16 pb-8" aria-label="Site footer">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div className="col-span-1 md:col-span-2">
-              <Link href="/" className="flex items-center gap-2 mb-4" aria-label="BookMeArtist homepage">
-                <Palette className="w-6 h-6 text-primary" aria-hidden="true" />
-                <span className="font-display font-bold text-xl text-white">BookMeArtist</span>
-              </Link>
-              <p className="text-muted-foreground text-sm max-w-sm leading-relaxed">
-                The premier destination to discover and book world-class creative talent for your next event or project.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-display font-bold text-white mb-4">Platform</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/artists" className="hover:text-primary transition-colors">Browse Artists</Link></li>
-                <li><Link href="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
-                <li><Link href="/login" className="hover:text-primary transition-colors">Artist Login</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-display font-bold text-white mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Cookie Policy</a></li>
-              </ul>
+      <footer className="mt-auto border-t border-white/5" aria-label="Site footer">
+        {/* Main footer body */}
+        <div className="bg-card/40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div className="grid grid-cols-2 md:grid-cols-12 gap-10">
+
+              {/* Brand — wide column */}
+              <div className="col-span-2 md:col-span-5 space-y-5">
+                <Link href="/" className="inline-flex items-center gap-3 group" aria-label="BookMeArtist homepage">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary to-accent flex items-center justify-center shadow-[0_0_16px_rgba(99,102,241,0.35)] group-hover:scale-105 transition-transform duration-300">
+                    <Palette className="w-4 h-4 text-white" aria-hidden="true" />
+                  </div>
+                  <span className="font-display font-extrabold text-xl text-white">
+                    BookMe<span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Artist</span>
+                  </span>
+                </Link>
+                <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
+                  India's platform to discover and directly book verified creative talent — musicians, photographers, dancers, and more — for any event.
+                </p>
+                <div className="flex items-center gap-1 pt-1">
+                  <span className="text-xs text-muted-foreground/60">Made with</span>
+                  <span className="text-red-400 text-sm">♥</span>
+                  <span className="text-xs text-muted-foreground/60">in India</span>
+                </div>
+              </div>
+
+              {/* Spacer on desktop */}
+              <div className="hidden md:block md:col-span-1" />
+
+              {/* For Clients */}
+              <div className="col-span-1 md:col-span-2">
+                <h4 className="font-semibold text-white text-sm mb-4">Explore</h4>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  <li><Link href="/artists" className="hover:text-white transition-colors">Browse Artists</Link></li>
+                  <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
+                  <li><Link href="/#how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
+                </ul>
+              </div>
+
+              {/* For Artists */}
+              <div className="col-span-1 md:col-span-2">
+                <h4 className="font-semibold text-white text-sm mb-4">For Artists</h4>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  <li><Link href="/login" className="hover:text-white transition-colors">Artist Login</Link></li>
+                  <li><Link href="/#apply" className="hover:text-white transition-colors">Apply as Artist</Link></li>
+                  <li><Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
+                </ul>
+              </div>
+
+              {/* Legal */}
+              <div className="col-span-1 md:col-span-2">
+                <h4 className="font-semibold text-white text-sm mb-4">Legal</h4>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                  <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                  <li><Link href="/privacy#cookies" className="hover:text-white transition-colors">Cookie Policy</Link></li>
+                </ul>
+              </div>
+
             </div>
           </div>
-          <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-muted-foreground text-sm">
+        </div>
+
+        {/* Bottom bar */}
+        <div className="border-t border-white/5 bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p className="text-muted-foreground/60 text-xs">
               © {new Date().getFullYear()} BookMeArtist. All rights reserved.
+            </p>
+            <p className="text-muted-foreground/40 text-xs">
+              Connecting India's best artists with the people who need them.
             </p>
           </div>
         </div>

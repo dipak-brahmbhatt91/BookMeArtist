@@ -14,7 +14,7 @@ export function ArtistCard({ artist }: ArtistCardProps) {
 
   return (
     <Link
-      href={`/artists/${artist.id}`}
+      href={`/artists/${(artist as any).slug || artist.id}`}
       className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       aria-label={`View profile of ${artist.name}, ${artist.categoryName}${isAvailable ? ", currently available" : ""}, rated ${ratingDisplay} out of 5, starting at ${formatPrice(artist.basePrice)}`}
     >

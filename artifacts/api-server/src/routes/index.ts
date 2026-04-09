@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
+import sitemapRouter from "./sitemap";
 import categoriesRouter from "./categories";
 import artistsRouter from "./artists";
 import bookingsRouter from "./bookings";
@@ -15,6 +16,7 @@ import { requireAdmin } from "../middleware/auth";
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(sitemapRouter);
 router.use(authRouter);
 router.use(categoriesRouter);
 router.use(artistsRouter);

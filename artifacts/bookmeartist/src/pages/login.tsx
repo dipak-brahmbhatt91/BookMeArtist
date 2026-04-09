@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useSearch } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { Palette, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,14 +52,14 @@ export default function Login() {
         noindex={true}
       />
       <header className="py-6 px-8">
-        <a href="/" className="flex items-center gap-3 w-fit group" aria-label="BookMeArtist — Go to homepage">
+        <Link href="/" className="flex items-center gap-3 w-fit group" aria-label="BookMeArtist — Go to homepage">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.4)] group-hover:scale-105 transition-transform" aria-hidden="true">
             <Palette className="w-4 h-4 text-white" aria-hidden="true" />
           </div>
           <span className="font-display font-extrabold text-xl tracking-tight text-white" aria-hidden="true">
             BookMe<span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Artist</span>
           </span>
-        </a>
+        </Link>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4 pb-16">
@@ -151,14 +151,14 @@ export default function Login() {
 
             <div className="mt-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted-foreground">
               Need to claim a public artist profile?{" "}
-              <a href="/artists" className="font-semibold text-primary hover:text-primary/80 transition-colors">
+              <Link href="/artists" className="font-semibold text-primary hover:text-primary/80 transition-colors">
                 Open the artist listing first
-              </a>
+              </Link>
             </div>
           </div>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            <a href="/" className="hover:text-primary transition-colors underline underline-offset-4">← Back to homepage</a>
+            <Link href="/" className="hover:text-primary transition-colors underline underline-offset-4">← Back to homepage</Link>
           </p>
         </motion.div>
       </div>

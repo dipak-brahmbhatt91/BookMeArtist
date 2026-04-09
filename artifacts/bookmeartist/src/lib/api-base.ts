@@ -6,5 +6,5 @@ export function apiUrl(path: string) {
 }
 
 /** Absolute URL for SEO / structured data. Set VITE_APP_URL in production. */
-export const APP_BASE_URL = (import.meta.env.VITE_APP_URL || "").replace(/\/$/, "");
+export const APP_BASE_URL = (import.meta.env.VITE_APP_URL || "https://bookmeartist.onrender.com").replace(/\/$/, "");
 

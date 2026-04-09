@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearch } from "wouter";
+import { Link, useSearch } from "wouter";
 import { AlertCircle, BadgeCheck, Mail, MapPin, MessageSquare, Palette, UserCheck, Instagram } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -78,14 +78,14 @@ export default function ClaimProfile() {
       />
 
       <header className="py-6 px-8">
-        <a href="/" className="flex items-center gap-3 w-fit group" aria-label="BookMeArtist homepage">
+        <Link href="/" className="flex items-center gap-3 w-fit group" aria-label="BookMeArtist homepage">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.4)] group-hover:scale-105 transition-transform" aria-hidden="true">
             <Palette className="w-4 h-4 text-white" aria-hidden="true" />
           </div>
           <span className="font-display font-extrabold text-xl tracking-tight text-white" aria-hidden="true">
             BookMe<span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Artist</span>
           </span>
-        </a>
+        </Link>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4 pb-16">
@@ -133,7 +133,7 @@ export default function ClaimProfile() {
                   Start from the public artist page you want to claim, then use its request-review link.
                 </p>
                 <Button className="mt-6 bg-primary hover:bg-primary/90 text-white" asChild>
-                  <a href="/artists">Browse artist profiles</a>
+                  <Link href="/artists">Browse artist profiles</Link>
                 </Button>
               </div>
             ) : submitted ? (
@@ -146,7 +146,7 @@ export default function ClaimProfile() {
                   An admin will review your request and contact you before any account access is created.
                 </p>
                 <Button className="mt-6 bg-primary hover:bg-primary/90 text-white" asChild>
-                  <a href="/">Back to homepage</a>
+                  <Link href="/">Back to homepage</Link>
                 </Button>
               </div>
             ) : (

@@ -1,8 +1,30 @@
 import { Router, type IRouter } from "express";
-import { db } from "@workspace/db";
+import { db, pool } from "@workspace/db";
 import { artistsTable, categoriesTable, insertArtistSchema } from "@workspace/db/schema";
-import { eq, and, gte, lte, ilike, or, sql } from "drizzle-orm";
+import { eq, and, gte, lte, ilike, or } from "drizzle-orm";
 import { isAdmin, isLinkedArtist, requireAdmin, requireAuth } from "../middleware/auth";
+
+function toSlug(str: string): string {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function uniqueSlug(name: string, excludeId?: number): Promise<string> {
+  const base = toSlug(name);
+  const { rows } = await pool.query<{ slug: string }>(
+    `SELECT slug FROM artists WHERE slug LIKE $1 ${excludeId ? "AND id != $2" : ""}`,
+    excludeId ? [`${base}%`, excludeId] : [`${base}%`]
+  );
+  const taken = new Set(rows.map(r => r.slug));
+  if (!taken.has(base)) return base;
+  let i = 2;
+  while (taken.has(`${base}-${i}`)) i++;
+  return `${base}-${i}`;
+}
 
 const router: IRouter = Router();
 
@@ -49,6 +71,7 @@ router.get("/artists", async (req, res) => {
       .select({
         id: artistsTable.id,
         name: artistsTable.name,
+        slug: artistsTable.slug,
         bio: artistsTable.bio,
         categoryId: artistsTable.categoryId,
         categoryName: categoriesTable.name,
@@ -82,17 +105,19 @@ router.get("/artists", async (req, res) => {
   }
 });
 
-router.get("/artists/:id", async (req, res) => {
+router.get("/artists/:identifier", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: "Invalid ID" });
-    }
+    const { identifier } = req.params;
+    const numericId = parseInt(identifier, 10);
+    const condition = !isNaN(numericId) && String(numericId) === identifier
+      ? eq(artistsTable.id, numericId)
+      : eq(artistsTable.slug, identifier);
 
     const artists = await db
       .select({
         id: artistsTable.id,
         name: artistsTable.name,
+        slug: artistsTable.slug,
         bio: artistsTable.bio,
         categoryId: artistsTable.categoryId,
         categoryName: categoriesTable.name,
@@ -111,7 +136,7 @@ router.get("/artists/:id", async (req, res) => {
       })
       .from(artistsTable)
       .leftJoin(categoriesTable, eq(artistsTable.categoryId, categoriesTable.id))
-      .where(eq(artistsTable.id, id))
+      .where(condition)
       .limit(1);
 
     if (artists.length === 0) {
@@ -142,7 +167,8 @@ router.post("/artists", requireAdmin, async (req, res) => {
       return res.status(400).json({ error: "Invalid request body" });
     }
 
-    const [artist] = await db.insert(artistsTable).values(parsed.data).returning();
+    const slug = await uniqueSlug(parsed.data.name as string);
+    const [artist] = await db.insert(artistsTable).values({ ...parsed.data, slug }).returning();
     res.status(201).json({ ...artist, basePrice: parseFloat(artist.basePrice as string), rating: parseFloat(artist.rating as string) });
   } catch (err) {
     req.log.error({ err }, "Failed to create artist");
@@ -167,7 +193,10 @@ router.put("/artists/:id", requireAuth, async (req, res) => {
     if (!parsed.success) return res.status(400).json({ error: "Invalid request body" });
 
     const updateData: Record<string, unknown> = {};
-    if (parsed.data.name !== undefined) updateData.name = parsed.data.name;
+    if (parsed.data.name !== undefined) {
+      updateData.name = parsed.data.name;
+      updateData.slug = await uniqueSlug(parsed.data.name, id);
+    }
     if (parsed.data.bio !== undefined) updateData.bio = parsed.data.bio;
     if (parsed.data.categoryId !== undefined) updateData.categoryId = parsed.data.categoryId;
     if (parsed.data.location !== undefined) updateData.location = parsed.data.location;

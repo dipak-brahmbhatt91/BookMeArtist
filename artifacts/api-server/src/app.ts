@@ -66,9 +66,15 @@ async function ensureCoreTables() {
       );
     `);
 
+    // Defensive column additions
+    await pool.query(`
+      ALTER TABLE "artists" ADD COLUMN IF NOT EXISTS "slug" text NOT NULL DEFAULT '';
+    `);
+
     // Indexes for foreign keys and frequent query columns
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_artists_category_id ON artists(category_id);
+      CREATE INDEX IF NOT EXISTS idx_artists_slug ON artists(slug);
       CREATE INDEX IF NOT EXISTS idx_bookings_artist_id ON bookings(artist_id);
       CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
     `);
@@ -207,54 +213,123 @@ async function ensureDefaultContent() {
   }
 }
 
-async function ensureSeedData() {
+// ---------------------------------------------------------------------------
+// Versioned migration system
+// Each migration runs exactly once. Version numbers are permanent — never
+// renumber or delete a migration. To change data, add a new migration.
+// ---------------------------------------------------------------------------
+
+async function ensureMigrationsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      version   integer PRIMARY KEY,
+      description text NOT NULL,
+      applied_at  timestamp NOT NULL DEFAULT now()
+    )
+  `);
+  // Bootstrap: if categories already exist but no migration is recorded,
+  // the old ensureSeedData already ran — mark v1 as applied so it doesn't re-run.
+  const { rows: cats } = await pool.query(`SELECT COUNT(*) FROM categories`);
+  if (parseInt(cats[0].count) > 0) {
+    await pool.query(`
+      INSERT INTO schema_migrations (version, description)
+      VALUES (1, 'Initial seed data (bootstrapped from pre-migration deployment)')
+      ON CONFLICT (version) DO NOTHING
+    `);
+  }
+}
+
+async function migration001InitialSeed() {
+  await pool.query(`
+    INSERT INTO categories (name, slug, icon) VALUES
+    ('Music', 'music', '🎵'),
+    ('Photography', 'photography', '📸'),
+    ('Painting', 'painting', '🎨'),
+    ('Dance', 'dance', '💃'),
+    ('Comedy', 'comedy', '🎭'),
+    ('DJ', 'dj', '🎧'),
+    ('Tattoo', 'tattoo', '🖊️'),
+    ('Poetry', 'poetry', '📝')
+  `);
+
+  await pool.query(`
+    INSERT INTO artists (name, bio, category_id, location, profile_image, portfolio_images, base_price, rating, review_count, featured, tags, packages, availability, social_links) VALUES
+    ('Priya Sharma', 'Award-winning vocalist with a soulful Bollywood-classical fusion sound. Priya has performed at major venues across India and Southeast Asia, bringing emotion and artistry to every performance.', 1, 'Mumbai, Maharashtra', 'https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=500&q=80', '["https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80","https://images.unsplash.com/photo-1470019693664-1d202d2c0907?w=800&q=80"]', 42000.00, 4.90, 87, true, '["bollywood","classical","ghazal","live performance","weddings"]', '[{"name":"Solo Set","price":42000,"duration":"45 min","description":"45-minute acoustic performance, perfect for intimate events"},{"name":"Full Band","price":125000,"duration":"2 hours","description":"2-hour full band performance with sound system"}]', 'available', '{"website":"https://priyasharmamusic.in","instagram":"@priyasharmamusic"}'),
+    ('Rahul Kapoor', 'Commercial and editorial photographer with 10+ years of experience capturing life''s most beautiful moments. Specialising in portraits, weddings, and brand campaigns across India.', 2, 'Bengaluru, Karnataka', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80', '["https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80","https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80"]', 67000.00, 4.80, 124, true, '["portrait","wedding","editorial","brand","commercial"]', '[{"name":"Portrait Session","price":67000,"duration":"2 hours","description":"2-hour portrait session with 30 edited photos"},{"name":"Wedding Day","price":291000,"duration":"8 hours","description":"Full day wedding coverage with 500+ edited photos"}]', 'busy', '{"website":"https://rahulkapoor.in","instagram":"@rahulkapoorvisuals"}'),
+    ('Meera Arts Studio', 'Contemporary abstract painter known for vibrant, large-scale murals and canvas works. Meera creates one-of-a-kind pieces that transform spaces and tell stories.', 3, 'Delhi, NCR', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&q=80', '["https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=800&q=80","https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=800&q=80"]', 100000.00, 5.00, 43, true, '["abstract","mural","canvas","installation","contemporary"]', '[{"name":"Canvas Piece","price":100000,"duration":"2-3 weeks","description":"Custom painted canvas (24x36 inches), ready to hang"},{"name":"Medium Mural","price":374000,"duration":"3-5 days","description":"Wall mural up to 100 sq ft, includes materials"}]', 'available', '{"website":"https://meeraarts.in","instagram":"@meeraartsstudio"}'),
+    ('Arjun Nair', 'Bharatanatyam and Bollywood dance choreographer and performer with 15 years of stage experience.', 4, 'Chennai, Tamil Nadu', 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=500&q=80', '["https://images.unsplash.com/photo-1545959570-a94084071b5d?w=800&q=80"]', 50000.00, 4.70, 62, false, '["bharatanatyam","bollywood","choreography","corporate events","weddings"]', '[{"name":"Solo Performance","price":50000,"duration":"15 min","description":"15-minute solo dance performance"}]', 'available', '{"instagram":"@arjunnair_dance"}'),
+    ('Sapna Mehta', 'Stand-up comedian and emcee who brings laughter to corporate events, weddings, and private parties across India.', 5, 'Pune, Maharashtra', 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=500&q=80', '["https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=800&q=80"]', 62500.00, 4.90, 38, false, '["stand-up","emcee","corporate","clean comedy","weddings"]', '[{"name":"Opening Act","price":62500,"duration":"20 min","description":"20-minute stand-up set to warm up the crowd"}]', 'available', '{"website":"https://sapnamehta.in","instagram":"@sapnamehta_comedy"}'),
+    ('DJ Dhruv', 'World-class DJ and music producer with residencies at top venues in Goa, Mumbai, and Dubai.', 6, 'Goa', 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=500&q=80', '["https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=800&q=80"]', 83000.00, 4.60, 95, true, '["house","techno","commercial","club","wedding DJ","festivals"]', '[{"name":"Club Night","price":83000,"duration":"4 hours","description":"4-hour DJ set with full setup"}]', 'busy', '{"website":"https://djdhruv.in","instagram":"@djdhruv"}'),
+    ('Ink by Kavya', 'Professional tattoo artist specialising in fine-line, botanical, and geometric designs.', 7, 'Bengaluru, Karnataka', 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=500&q=80', '["https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?w=800&q=80"]', 17000.00, 5.00, 156, false, '["fine-line","botanical","geometric","black & grey","custom"]', '[{"name":"Small Piece","price":17000,"duration":"1-2 hours","description":"Small tattoo under 3 inches"}]', 'available', '{"website":"https://inkbykavya.in","instagram":"@inkbykavya"}'),
+    ('Vivek Verse', 'Published poet and spoken word performer whose words ignite emotions and spark conversations.', 8, 'Kolkata, West Bengal', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80', '["https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&q=80"]', 25000.00, 4.80, 29, false, '["spoken word","custom poems","weddings","corporate","motivational"]', '[{"name":"Custom Poem","price":25000,"duration":"Delivery in 5 days","description":"A personalised written poem for any occasion"}]', 'available', '{"website":"https://vivekverse.in","instagram":"@vivekverse"}'),
+    ('Raaga Strings', 'Classically trained violinist and leader of the Raaga String Quartet. Trained at the Shanmukhananda Music Academy, Mumbai.', 1, 'Mumbai, Maharashtra', 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=500&q=80', '["https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=800&q=80"]', 75000.00, 4.90, 71, true, '["classical","string quartet","violin","wedding","gala","corporate"]', '[{"name":"Solo Violin","price":75000,"duration":"1 hour","description":"Elegant solo violin performance"}]', 'available', '{"website":"https://raagastrings.in","instagram":"@raagastrings"}'),
+    ('Asha Lens', 'Cinematic videographer and documentary filmmaker with credits on Netflix and Amazon Prime India.', 2, 'Hyderabad, Telangana', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80', '["https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80"]', 116000.00, 4.80, 53, true, '["cinematography","wedding film","documentary","drone","brand video"]', '[{"name":"Highlight Reel","price":116000,"duration":"Half day","description":"4-hour shoot with a cinematic 3-5 min highlight film"}]', 'available', '{"website":"https://ashalens.in","instagram":"@ashalens"}'),
+    ('Nisha Bloom', 'Floral installation artist and event designer whose immersive environments have graced magazine covers across India.', 3, 'Jaipur, Rajasthan', 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=500&q=80', '["https://images.unsplash.com/photo-1487530811015-780780169993?w=800&q=80"]', 208000.00, 5.00, 28, true, '["floral installation","event design","wedding","luxury","botanicals"]', '[{"name":"Signature Arch","price":208000,"duration":"1 day setup","description":"Custom floral arch or focal piece"}]', 'available', '{"website":"https://nishabloom.in","instagram":"@nishabloomdesigns"}')
+  `);
+
+  await pool.query(`
+    INSERT INTO bookings (artist_id, client_name, client_email, event_date, event_type, package_name, budget, brief, location, status) VALUES
+    (1,'Ananya Singh','ananya.singh@gmail.com','2026-04-15','Wedding Reception','Full Band',125000.00,'Looking for a vocalist for our wedding reception. Approximately 80 guests.','The Leela Palace, New Delhi','completed'),
+    (1,'Vikram Mehta','vikram.mehta@gmail.com','2026-05-02','Corporate Gala','Solo Set',41500.00,'Annual company dinner, approx 150 attendees.','ITC Grand Bharat, Gurugram','accepted'),
+    (2,'Riya Sharma','riya.sharma@gmail.com','2026-06-20','Wedding','Wedding Day',291000.00,'Outdoor garden wedding, 120 guests.','Taj Falaknuma Palace, Hyderabad','accepted'),
+    (3,'Priya Patel','priya.patel@outlook.com','2026-05-18','Restaurant Opening','Medium Mural',374000.00,'Opening a new Indian fusion restaurant in Bandra.','Bandra West, Mumbai','accepted'),
+    (6,'Nikhil Joshi','n.joshi@techventures.io','2026-04-28','Company Launch Party','Club Night',83000.00,'Tech startup launching our new product. 300 guests.','KTPO Convention Centre, Bengaluru','accepted'),
+    (4,'Pooja Nair','p.nair@eventpros.co','2026-07-04','Summer Festival','Solo Performance',208000.00,'Cultural festival celebrating Indian classical heritage.','Music Academy, Chennai','pending'),
+    (1,'Shruti Patel','shruti.patel@eventplanning.com','2026-10-05','Charity Gala','Full Band',125000.00,'Annual fundraiser for our children''s hospital foundation.','Taj Lands End, Mumbai','pending')
+  `);
+}
+
+// Add future migrations below — never edit or renumber existing ones.
+
+function toSlug(str: string): string {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function migration002GenerateSlugs() {
+  const { rows } = await pool.query<{ id: number; name: string }>(
+    `SELECT id, name FROM artists WHERE slug = '' ORDER BY id`
+  );
+  for (const artist of rows) {
+    let slug = toSlug(artist.name);
+    // ensure uniqueness — append id if slug already taken
+    const { rows: existing } = await pool.query(
+      `SELECT 1 FROM artists WHERE slug = $1 AND id != $2`,
+      [slug, artist.id]
+    );
+    if (existing.length > 0) slug = `${slug}-${artist.id}`;
+    await pool.query(`UPDATE artists SET slug = $1 WHERE id = $2`, [slug, artist.id]);
+  }
+}
+
+async function runMigrations() {
   try {
-    const { rows } = await pool.query(`SELECT COUNT(*) FROM categories`);
-    if (parseInt(rows[0].count) > 0) return;
+    await ensureMigrationsTable();
 
-    logger.info("Seeding database with initial data...");
+    const migrations: Array<{ version: number; description: string; run: () => Promise<void> }> = [
+      { version: 1, description: 'Initial seed data',              run: migration001InitialSeed },
+      { version: 2, description: 'Generate slugs for all artists', run: migration002GenerateSlugs },
+    ];
 
-    await pool.query(`
-      INSERT INTO categories (name, slug, icon) VALUES
-      ('Music', 'music', '🎵'),
-      ('Photography', 'photography', '📸'),
-      ('Painting', 'painting', '🎨'),
-      ('Dance', 'dance', '💃'),
-      ('Comedy', 'comedy', '🎭'),
-      ('DJ', 'dj', '🎧'),
-      ('Tattoo', 'tattoo', '🖊️'),
-      ('Poetry', 'poetry', '📝')
-    `);
-
-    await pool.query(`
-      INSERT INTO artists (name, bio, category_id, location, profile_image, portfolio_images, base_price, rating, review_count, featured, tags, packages, availability, social_links) VALUES
-      ('Sofia Reyes', 'Award-winning vocalist and songwriter with a soulful jazz-pop fusion sound. Sofia has performed at major venues across North America and Europe, bringing emotion and artistry to every performance.', 1, 'New York, NY', 'https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=500&q=80', '["https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80","https://images.unsplash.com/photo-1470019693664-1d202d2c0907?w=800&q=80"]', 500.00, 4.90, 87, true, '["jazz","soul","pop","live performance","weddings"]', '[{"name":"Solo Set","price":500,"duration":"45 min","description":"45-minute acoustic performance, perfect for intimate events"},{"name":"Full Band","price":1500,"duration":"2 hours","description":"2-hour full band performance with sound system"}]', 'available', '{"website":"https://sofiareyes.com","instagram":"@sofiareyesmusic"}'),
-      ('Marco Visuals', 'Commercial and editorial photographer with 10+ years of experience capturing life''s most beautiful moments. Specializing in portraits, weddings, and brand campaigns.', 2, 'Los Angeles, CA', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80', '["https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80","https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80"]', 800.00, 4.80, 124, true, '["portrait","wedding","editorial","brand","commercial"]', '[{"name":"Portrait Session","price":800,"duration":"2 hours","description":"2-hour portrait session with 30 edited photos"},{"name":"Wedding Day","price":3500,"duration":"8 hours","description":"Full day wedding coverage with 500+ edited photos"}]', 'busy', '{"website":"https://marcovisuals.com","instagram":"@marcovisuals"}'),
-      ('Luna Art Studio', 'Contemporary abstract painter known for vibrant, large-scale murals and canvas works. Luna creates one-of-a-kind pieces that transform spaces and tell stories.', 3, 'Miami, FL', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&q=80', '["https://images.unsplash.com/photo-1541367777708-7905fe3296c0?w=800&q=80","https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=800&q=80"]', 1200.00, 5.00, 43, true, '["abstract","mural","canvas","installation","contemporary"]', '[{"name":"Canvas Piece","price":1200,"duration":"2-3 weeks","description":"Custom painted canvas (24x36 inches), ready to hang"},{"name":"Medium Mural","price":4500,"duration":"3-5 days","description":"Wall mural up to 100 sq ft, includes materials"}]', 'available', '{"website":"https://lunaart.studio","instagram":"@lunaart"}'),
-      ('Carlos Rivera', 'Latin and hip-hop dance choreographer and performer with 15 years of stage experience.', 4, 'Chicago, IL', 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=500&q=80', '["https://images.unsplash.com/photo-1545959570-a94084071b5d?w=800&q=80"]', 600.00, 4.70, 62, false, '["latin","hip-hop","choreography","corporate events","weddings"]', '[{"name":"Solo Performance","price":600,"duration":"15 min","description":"15-minute solo dance performance"}]', 'available', '{"instagram":"@carlosrivera_dance"}'),
-      ('Jade Thompson', 'Stand-up comedian and emcee who brings laughter to corporate events, weddings, and private parties.', 5, 'Austin, TX', 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=500&q=80', '["https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=800&q=80"]', 750.00, 4.90, 38, false, '["stand-up","emcee","corporate","clean comedy","weddings"]', '[{"name":"Opening Act","price":750,"duration":"20 min","description":"20-minute stand-up set to warm up the crowd"}]', 'available', '{"website":"https://jadethompson.com","instagram":"@jadethompsoncomedy"}'),
-      ('DJ Phantom', 'World-class DJ and music producer with residencies at top clubs in Ibiza, Las Vegas, and New York.', 6, 'Las Vegas, NV', 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=500&q=80', '["https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=800&q=80"]', 1000.00, 4.60, 95, true, '["house","techno","commercial","club","wedding DJ","festivals"]', '[{"name":"Club Night","price":1000,"duration":"4 hours","description":"4-hour DJ set with full setup"}]', 'busy', '{"website":"https://djphantom.com","instagram":"@djphantom"}'),
-      ('Ink by Maya', 'Professional tattoo artist specializing in fine-line, botanical, and geometric designs.', 7, 'Portland, OR', 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=500&q=80', '["https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?w=800&q=80"]', 200.00, 5.00, 156, false, '["fine-line","botanical","geometric","black & grey","custom"]', '[{"name":"Small Piece","price":200,"duration":"1-2 hours","description":"Small tattoo under 3 inches"}]', 'available', '{"website":"https://inkbymaya.art","instagram":"@inkbymaya"}'),
-      ('Victor Verse', 'Published poet and spoken word performer whose words ignite emotions and spark conversations.', 8, 'San Francisco, CA', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80', '["https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&q=80"]', 300.00, 4.80, 29, false, '["spoken word","custom poems","weddings","corporate","motivational"]', '[{"name":"Custom Poem","price":300,"duration":"Delivery in 5 days","description":"A personalized written poem for any occasion"}]', 'available', '{"website":"https://victorverse.com","instagram":"@victorverse"}'),
-      ('Aria Strings', 'Classically trained violinist and leader of the Aria String Quartet. Educated at Juilliard.', 1, 'Boston, MA', 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=500&q=80', '["https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=800&q=80"]', 900.00, 4.90, 71, true, '["classical","string quartet","violin","wedding","gala","corporate"]', '[{"name":"Solo Violin","price":900,"duration":"1 hour","description":"Elegant solo violin performance"}]', 'available', '{"website":"https://ariastrings.com","instagram":"@ariastringsquartet"}'),
-      ('Zara Flash', 'Cinematic videographer and documentary filmmaker with credits on Netflix and HBO.', 2, 'Brooklyn, NY', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80', '["https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80"]', 1400.00, 4.80, 53, true, '["cinematography","wedding film","documentary","drone","brand video"]', '[{"name":"Highlight Reel","price":1400,"duration":"Half day","description":"4-hour shoot with a cinematic 3-5 min highlight film"}]', 'available', '{"website":"https://zaraflash.film","instagram":"@zaraflash"}'),
-      ('Nadia Bloom', 'Floral installation artist and event designer whose immersive environments have graced magazine covers.', 3, 'Nashville, TN', 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=500&q=80', '["https://images.unsplash.com/photo-1487530811015-780780169993?w=800&q=80"]', 2500.00, 5.00, 28, true, '["floral installation","event design","wedding","luxury","botanicals"]', '[{"name":"Signature Arch","price":2500,"duration":"1 day setup","description":"Custom floral arch or focal piece"}]', 'available', '{"website":"https://nadiabloom.co","instagram":"@nadiabloomdesigns"}')
-    `);
-
-    await pool.query(`
-      INSERT INTO bookings (artist_id, client_name, client_email, event_date, event_type, package_name, budget, brief, location, status) VALUES
-      (1,'Emily Johnson','emily@example.com','2026-04-15','Wedding Reception','Full Band',1500.00,'Looking for a vocalist for our wedding reception. Approximately 80 guests.','The Grand Ballroom, New York, NY','completed'),
-      (1,'David Chen','david@example.com','2026-05-02','Corporate Gala','Solo Set',500.00,'Annual company dinner, approx 150 attendees.','Midtown Conference Center, NY','accepted'),
-      (2,'Sarah Williams','sarah@example.com','2026-06-20','Wedding','Wedding Day',3500.00,'Outdoor garden wedding, 120 guests.','Rose Garden Estate, Malibu, CA','accepted'),
-      (3,'Priya Patel','priya.patel@outlook.com','2026-05-18','Restaurant Opening','Medium Mural',4500.00,'Opening a new Mediterranean restaurant in Miami.','Coral Gables, FL','accepted'),
-      (6,'James Okafor','j.okafor@techventures.io','2026-04-28','Company Launch Party','Club Night',1000.00,'Tech startup launching our new product. 300 guests.','Las Vegas, NV','accepted'),
-      (4,'Rachel Kim','r.kim@eventpros.co','2026-07-04','Summer Festival','Group Choreography',2500.00,'Cultural festival celebrating Latin heritage.','Chicago, IL','pending'),
-      (1,'Natalie Ross','natalie.ross@eventplanning.com','2026-10-05','Charity Gala','Full Band',1500.00,'Annual fundraiser for our children hospital foundation.','New York, NY','pending')
-    `);
-
-    logger.info("Database seeded successfully");
+    for (const m of migrations) {
+      const { rows } = await pool.query(
+        `SELECT 1 FROM schema_migrations WHERE version = $1`, [m.version]
+      );
+      if (rows.length > 0) continue; // already applied — skip
+      logger.info(`Applying migration ${m.version}: ${m.description}`);
+      await m.run();
+      await pool.query(
+        `INSERT INTO schema_migrations (version, description) VALUES ($1, $2)`,
+        [m.version, m.description]
+      );
+      logger.info(`Migration ${m.version} applied`);
+    }
   } catch (err) {
-    logger.error({ err }, "Failed to seed database");
+    logger.error({ err }, "Migration runner failed");
   }
 }
 
@@ -319,7 +394,7 @@ await ensureSessionTable();
 await ensureApplicationsTable();
 await ensureSiteContentTable();
 await ensureBlogPostsTable();
-await ensureSeedData();
+await runMigrations();
 await ensureDefaultContent();
 await ensureAdminUser();
 

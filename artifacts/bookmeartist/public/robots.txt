@@ -24,4 +24,4 @@ Disallow: /
 User-agent: Claude-Web
 Disallow: /
 
-Sitemap: https://bookmeartist.replit.app/sitemap.xml
+Sitemap: https://bookmeartist.onrender.com/api/sitemap.xml

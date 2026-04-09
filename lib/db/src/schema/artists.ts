@@ -19,6 +19,7 @@ export const artistsTable = pgTable("artists", {
   packages: jsonb("packages").$type<Array<{ name: string; description: string; price: number; duration: string }>>().notNull().default([]),
   availability: text("availability", { enum: ["available", "busy", "unavailable"] }).notNull().default("available"),
   socialLinks: jsonb("social_links").$type<{ instagram?: string; website?: string; youtube?: string; twitter?: string; tiktok?: string }>().notNull().default({}),
+  slug: text("slug").notNull().default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

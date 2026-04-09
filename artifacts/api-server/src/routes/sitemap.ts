@@ -1,0 +1,61 @@
+import { Router, type IRouter } from "express";
+import { pool } from "@workspace/db";
+
+const router: IRouter = Router();
+
+const BASE_URL = process.env.SITE_URL ?? "https://bookmeartist.onrender.com";
+
+router.get("/sitemap.xml", async (_req, res) => {
+  try {
+    const [artistRows, blogRows] = await Promise.all([
+      pool.query<{ slug: string; updated_at: string }>(
+        `SELECT slug, updated_at FROM artists WHERE slug != '' ORDER BY id`
+      ),
+      pool.query<{ slug: string; updated_at: string }>(
+        `SELECT slug, updated_at FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC`
+      ),
+    ]);
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const staticUrls = [
+      { loc: `${BASE_URL}/`,        lastmod: today, changefreq: "weekly",  priority: "1.0" },
+      { loc: `${BASE_URL}/artists`, lastmod: today, changefreq: "daily",   priority: "0.9" },
+      { loc: `${BASE_URL}/blog`,    lastmod: today, changefreq: "weekly",  priority: "0.7" },
+    ];
+
+    const artistUrls = artistRows.rows.map(a => ({
+      loc:        `${BASE_URL}/artists/${a.slug}`,
+      lastmod:    a.updated_at ? new Date(a.updated_at).toISOString().split("T")[0] : today,
+      changefreq: "weekly",
+      priority:   "0.8",
+    }));
+
+    const blogUrls = blogRows.rows.map(b => ({
+      loc:        `${BASE_URL}/blog/${b.slug}`,
+      lastmod:    b.updated_at ? new Date(b.updated_at).toISOString().split("T")[0] : today,
+      changefreq: "monthly",
+      priority:   "0.6",
+    }));
+
+    const allUrls = [...staticUrls, ...artistUrls, ...blogUrls];
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls.map(u => `  <url>
+    <loc>${u.loc}</loc>
+    <lastmod>${u.lastmod}</lastmod>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join("\n")}
+</urlset>`;
+
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=3600"); // cache 1 hour
+    res.send(xml);
+  } catch {
+    res.status(500).send("Failed to generate sitemap");
+  }
+});
+
+export default router;

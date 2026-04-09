@@ -17,7 +17,7 @@ interface PageSeoProps {
 
 export function PageSeo({
   title,
-  description = "Discover and book world-class creative talent for your next event or project. Verified musicians, photographers, dancers, and performers. No agency fees.",
+  description = "Discover and book verified creative talent across India — musicians, photographers, dancers, and performers for weddings, corporate events, and more. No agency fees.",
   canonical,
   image = DEFAULT_IMAGE,
   type = "website",

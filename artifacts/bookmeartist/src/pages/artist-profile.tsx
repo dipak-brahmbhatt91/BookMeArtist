@@ -171,7 +171,7 @@ export default function ArtistProfile() {
     <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
       {socialLinks.instagram && (
         <a href={socialLinks.instagram.startsWith("http") ? socialLinks.instagram : `https://instagram.com/${socialLinks.instagram.replace("@", "")}`}
-           target="_blank" rel="noreferrer"
+           target="_blank" rel="noopener noreferrer"
            className="p-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-xl transition-colors text-muted-foreground"
            title="Instagram">
           <Instagram className="w-4 h-4" />
@@ -179,7 +179,7 @@ export default function ArtistProfile() {
       )}
       {socialLinks.youtube && (
         <a href={socialLinks.youtube.startsWith("http") ? socialLinks.youtube : `https://youtube.com/${socialLinks.youtube}`}
-           target="_blank" rel="noreferrer"
+           target="_blank" rel="noopener noreferrer"
            className="p-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-xl transition-colors text-muted-foreground"
            title="YouTube">
           <Youtube className="w-4 h-4" />
@@ -187,7 +187,7 @@ export default function ArtistProfile() {
       )}
       {socialLinks.twitter && (
         <a href={socialLinks.twitter.startsWith("http") ? socialLinks.twitter : `https://twitter.com/${socialLinks.twitter.replace("@", "")}`}
-           target="_blank" rel="noreferrer"
+           target="_blank" rel="noopener noreferrer"
            className="p-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-xl transition-colors text-muted-foreground"
            title="Twitter / X">
           <Twitter className="w-4 h-4" />
@@ -195,14 +195,14 @@ export default function ArtistProfile() {
       )}
       {socialLinks.tiktok && (
         <a href={socialLinks.tiktok.startsWith("http") ? socialLinks.tiktok : `https://tiktok.com/@${socialLinks.tiktok.replace("@", "")}`}
-           target="_blank" rel="noreferrer"
+           target="_blank" rel="noopener noreferrer"
            className="p-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-xl transition-colors text-muted-foreground"
            title="TikTok">
           <Music2 className="w-4 h-4" />
         </a>
       )}
       {socialLinks.website && (
-        <a href={socialLinks.website} target="_blank" rel="noreferrer"
+        <a href={socialLinks.website} target="_blank" rel="noopener noreferrer"
            className="px-3 py-2 bg-muted hover:bg-primary/10 hover:text-primary rounded-xl transition-colors text-muted-foreground flex items-center gap-1.5 text-sm font-medium"
            title="Website">
           <Globe className="w-4 h-4" />
@@ -240,22 +240,33 @@ export default function ArtistProfile() {
         canonical={`/artists/${artist.slug || artist.id}`}
         image={profileImage}
         type="profile"
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "Person",
-          "name": artistName,
-          "jobTitle": artistCategory,
-          "description": artist.bio || undefined,
-          "url": `${APP_BASE_URL}/artists/${artist.slug || artist.id}`,
-          "image": profileImage,
-          "address": artist.location ? { "@type": "PostalAddress", "addressLocality": artistLocation } : undefined,
-          "offers": {
-            "@type": "Offer",
-            "price": artist.basePrice,
-            "priceCurrency": CURRENCY.code,
-            "availability": isAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Person",
+            "name": artistName,
+            "jobTitle": artistCategory,
+            "description": artist.bio || undefined,
+            "url": `${APP_BASE_URL}/artists/${artist.slug || artist.id}`,
+            "image": profileImage,
+            "address": artist.location ? { "@type": "PostalAddress", "addressLocality": artistLocation } : undefined,
+            "offers": {
+              "@type": "Offer",
+              "price": artist.basePrice,
+              "priceCurrency": CURRENCY.code,
+              "availability": isAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            },
           },
-        }}
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": APP_BASE_URL },
+              { "@type": "ListItem", "position": 2, "name": "Artists", "item": `${APP_BASE_URL}/artists` },
+              { "@type": "ListItem", "position": 3, "name": artistName, "item": `${APP_BASE_URL}/artists/${artist.slug || artist.id}` },
+            ],
+          },
+        ]}
       />
 
       {lightboxIndex !== null && (
@@ -269,6 +280,8 @@ export default function ArtistProfile() {
           className="w-full h-full object-cover"
           alt=""
           role="presentation"
+          loading="eager"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" aria-hidden="true" />
 
@@ -300,6 +313,8 @@ export default function ArtistProfile() {
                   src={profileImage || "https://images.unsplash.com/photo-1516280440502-6c2e8b243e22?auto=format&fit=crop&q=80&w=400"}
                   className="w-28 h-28 sm:w-32 sm:h-32 md:w-44 md:h-44 rounded-2xl object-cover shadow-lg border-2 border-border"
                   alt={artist.name}
+                  loading="eager"
+                  decoding="async"
                 />
                 {isAvailable && (
                   <span className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-card shadow" title="Available" />
@@ -448,7 +463,7 @@ export default function ArtistProfile() {
                     className="shrink-0 w-52 aspect-[3/4] rounded-2xl overflow-hidden bg-muted snap-start relative group"
                     onClick={() => setLightboxIndex(i)}
                   >
-                    <img src={img} className="w-full h-full object-cover transition-transform duration-500 group-active:scale-105" alt={`Portfolio ${i + 1}`} />
+                    <img src={img} className="w-full h-full object-cover transition-transform duration-500 group-active:scale-105" alt={`Portfolio ${i + 1}`} loading="lazy" decoding="async" />
                     <div className="absolute inset-0 bg-black/0 group-active:bg-black/15 transition-colors flex items-center justify-center">
                       <ZoomIn className="w-7 h-7 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
                     </div>
@@ -465,7 +480,7 @@ export default function ArtistProfile() {
                     className="aspect-square rounded-2xl overflow-hidden bg-muted group cursor-zoom-in relative"
                     onClick={() => setLightboxIndex(i)}
                   >
-                    <img src={img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={`Portfolio ${i + 1}`} />
+                    <img src={img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={`Portfolio ${i + 1}`} loading="lazy" decoding="async" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                       <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
                     </div>

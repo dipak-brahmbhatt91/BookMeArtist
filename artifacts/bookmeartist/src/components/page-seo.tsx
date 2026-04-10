@@ -25,7 +25,9 @@ export function PageSeo({
   schema,
 }: PageSeoProps) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Book Verified Musicians, Photographers & Performers`;
-  const canonicalUrl = canonical ? `${BASE_URL}${canonical}` : BASE_URL;
+  const canonicalUrl = canonical
+    ? canonical.startsWith("http") ? canonical : `${BASE_URL}${canonical}`
+    : BASE_URL;
 
   return (
     <Helmet>

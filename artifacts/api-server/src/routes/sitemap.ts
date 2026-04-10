@@ -7,12 +7,15 @@ const BASE_URL = process.env.SITE_URL ?? "https://www.bookmeartist.com";
 
 router.get("/sitemap.xml", async (_req, res) => {
   try {
-    const [artistRows, blogRows] = await Promise.all([
+    const [artistRows, blogRows, categoryRows] = await Promise.all([
       pool.query<{ slug: string; created_at: string }>(
         `SELECT slug, created_at FROM artists WHERE slug != '' ORDER BY id`
       ),
       pool.query<{ slug: string; published_at: string }>(
         `SELECT slug, published_at FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC`
+      ),
+      pool.query<{ slug: string }>(
+        `SELECT slug FROM categories ORDER BY id`
       ),
     ]);
 
@@ -23,6 +26,13 @@ router.get("/sitemap.xml", async (_req, res) => {
       { loc: `${BASE_URL}/artists`, lastmod: today, changefreq: "daily",   priority: "0.9" },
       { loc: `${BASE_URL}/blog`,    lastmod: today, changefreq: "weekly",  priority: "0.7" },
     ];
+
+    const categoryUrls = categoryRows.rows.map(c => ({
+      loc:        `${BASE_URL}/artists/${c.slug}`,
+      lastmod:    today,
+      changefreq: "weekly",
+      priority:   "0.85",
+    }));
 
     const artistUrls = artistRows.rows.map(a => ({
       loc:        `${BASE_URL}/artists/${a.slug}`,
@@ -38,7 +48,7 @@ router.get("/sitemap.xml", async (_req, res) => {
       priority:   "0.6",
     }));
 
-    const allUrls = [...staticUrls, ...artistUrls, ...blogUrls];
+    const allUrls = [...staticUrls, ...categoryUrls, ...artistUrls, ...blogUrls];
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

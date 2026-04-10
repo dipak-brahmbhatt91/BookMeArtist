@@ -32,10 +32,12 @@ export function ArtistCard({ artist }: ArtistCardProps) {
         )}
 
         <div className="relative h-56 sm:h-64 overflow-hidden bg-muted">
-          <img 
-            src={artist.profileImage || `https://images.unsplash.com/photo-1516280440502-6c2e8b243e22?auto=format&fit=crop&q=80&w=800`} 
+          <img
+            src={artist.profileImage || `https://images.unsplash.com/photo-1516280440502-6c2e8b243e22?auto=format&fit=crop&q=80&w=800`}
             alt={`${artist.name} — ${artist.categoryName}`}
             className="w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700 ease-out"
+            loading="lazy"
+            decoding="async"
           />
           
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" aria-hidden="true"></div>

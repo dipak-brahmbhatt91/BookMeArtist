@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import path from "path";
 import cors from "cors";
+import helmet from "helmet";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import pinoHttp from "pino-http";
@@ -420,6 +421,11 @@ const PgSession = connectPgSimple(session);
 const app: Express = express();
 
 app.set("trust proxy", true);
+
+app.use(helmet({
+  contentSecurityPolicy: false,      // CSP would break inline scripts/styles in the SPA
+  crossOriginEmbedderPolicy: false,  // needed for Unsplash images and external assets
+}));
 
 app.use(
   pinoHttp({

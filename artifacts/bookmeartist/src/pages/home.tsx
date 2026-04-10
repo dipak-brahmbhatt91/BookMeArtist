@@ -380,7 +380,7 @@ export default function Home() {
               {dbCategories.length > 0 && (
                 <div className="flex flex-wrap gap-2 justify-center">
                   {dbCategories.slice(0, 7).map((cat) => (
-                    <Link key={cat.id} href={`/artists?category=${cat.slug}`}>
+                    <Link key={cat.id} href={`/artists/${cat.slug}`}>
                       <span className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/65 text-xs hover:bg-white/10 hover:text-white transition-colors cursor-pointer whitespace-nowrap">
                         <span>{cat.icon}</span>{cat.name}
                       </span>
@@ -469,7 +469,7 @@ export default function Home() {
               /* 4 cols on mobile → up to 8 on desktop — fixed equal cells, no scroll */
               <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
                 {dbCategories.map((cat) => (
-                  <Link key={cat.id} href={`/artists?category=${cat.slug}`}>
+                  <Link key={cat.id} href={`/artists/${cat.slug}`}>
                     <div className="group bg-white/[0.03] border border-white/5 hover:border-primary/30 hover:bg-white/[0.06] rounded-2xl p-3 sm:p-4 text-center transition-all duration-200 cursor-pointer">
                       <div className="text-xl sm:text-3xl mb-1.5 sm:mb-2">{cat.icon}</div>
                       <p className="text-white/70 group-hover:text-white font-medium text-[10px] sm:text-xs leading-tight transition-colors">{cat.name}</p>

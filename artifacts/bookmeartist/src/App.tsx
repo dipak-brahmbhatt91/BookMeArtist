@@ -13,6 +13,9 @@ import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
 import ClaimProfile from "@/pages/claim-profile";
 import NotFound from "@/pages/not-found";
+import Terms from "@/pages/terms";
+import Privacy from "@/pages/privacy";
+import CategoryPage from "@/pages/category";
 import BlogIndex from "@/pages/blog/index";
 import BlogPost from "@/pages/blog/post";
 
@@ -81,7 +84,9 @@ function MainRouter() {
             <Switch>
               <Route path="/" component={Home} />
               <Route path="/artists" component={BrowseArtists} />
-              <Route path="/artists/:slug" component={ArtistProfile} />
+              <Route path="/artists/:slug" component={CategoryPage} />
+              <Route path="/terms" component={Terms} />
+              <Route path="/privacy" component={Privacy} />
               <Route path="/blog" component={BlogIndex} />
               <Route path="/blog/:slug" component={BlogPost} />
               <Route path="/dashboard">

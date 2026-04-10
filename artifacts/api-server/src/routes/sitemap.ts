@@ -8,11 +8,11 @@ const BASE_URL = process.env.SITE_URL ?? "https://www.bookmeartist.com";
 router.get("/sitemap.xml", async (_req, res) => {
   try {
     const [artistRows, blogRows] = await Promise.all([
-      pool.query<{ slug: string; updated_at: string }>(
-        `SELECT slug, updated_at FROM artists WHERE slug != '' ORDER BY id`
+      pool.query<{ slug: string; created_at: string }>(
+        `SELECT slug, created_at FROM artists WHERE slug != '' ORDER BY id`
       ),
-      pool.query<{ slug: string; updated_at: string }>(
-        `SELECT slug, updated_at FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC`
+      pool.query<{ slug: string; published_at: string }>(
+        `SELECT slug, published_at FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC`
       ),
     ]);
 
@@ -26,14 +26,14 @@ router.get("/sitemap.xml", async (_req, res) => {
 
     const artistUrls = artistRows.rows.map(a => ({
       loc:        `${BASE_URL}/artists/${a.slug}`,
-      lastmod:    a.updated_at ? new Date(a.updated_at).toISOString().split("T")[0] : today,
+      lastmod:    a.created_at ? new Date(a.created_at).toISOString().split("T")[0] : today,
       changefreq: "weekly",
       priority:   "0.8",
     }));
 
     const blogUrls = blogRows.rows.map(b => ({
       loc:        `${BASE_URL}/blog/${b.slug}`,
-      lastmod:    b.updated_at ? new Date(b.updated_at).toISOString().split("T")[0] : today,
+      lastmod:    b.published_at ? new Date(b.published_at).toISOString().split("T")[0] : today,
       changefreq: "monthly",
       priority:   "0.6",
     }));

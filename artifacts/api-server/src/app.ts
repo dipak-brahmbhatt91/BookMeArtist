@@ -487,6 +487,14 @@ app.use(
 
 app.use("/api", router);
 
+// Global error handler — catches unhandled errors from all routes
+app.use((err: any, _req: any, res: any, _next: any) => {
+  logger.error({ err }, "Unhandled request error");
+  if (!res.headersSent) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 if (isProduction) {
   const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist/public");
   const indexHtml = path.join(frontendDist, "index.html");

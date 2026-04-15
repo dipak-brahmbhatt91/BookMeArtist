@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Compass, ArrowRight, Zap, X, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react";
@@ -287,6 +287,12 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [, navigate] = useLocation();
 
+  // Auto-open apply modal when ?apply=1 is in the URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("apply") === "1") setShowApply(true);
+  }, []);
+
   function handleSearch() {
     const q = searchQuery.trim();
     navigate(q ? `/artists?search=${encodeURIComponent(q)}` : "/artists");
@@ -488,7 +494,7 @@ export default function Home() {
         </section>
 
         {/* ── ARTIST CTA — compact banner ── */}
-        <section className="py-10 sm:py-12 border-t border-white/8 bg-gradient-to-r from-primary/10 via-background to-accent/10">
+        <section id="apply" className="py-10 sm:py-12 border-t border-white/8 bg-gradient-to-r from-primary/10 via-background to-accent/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">For Artists</p>

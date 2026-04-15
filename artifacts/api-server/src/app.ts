@@ -452,10 +452,24 @@ if (isProduction && !process.env.SESSION_SECRET) {
   throw new Error("SESSION_SECRET environment variable must be set in production");
 }
 const sessionSecret = process.env.SESSION_SECRET ?? "dev-secret-local-only";
-const allowedOrigin = process.env.ALLOWED_ORIGIN ?? "http://localhost:5173";
+// ALLOWED_ORIGIN supports a single origin or a comma-separated list.
+// Render's fromService gives a bare hostname — normalise each entry to a full URL.
+const allowedOrigins = (process.env.ALLOWED_ORIGIN ?? "http://localhost:5173,http://localhost:3000")
+  .split(",")
+  .map((o) => {
+    const s = o.trim();
+    if (!s) return "";
+    return s.startsWith("http://") || s.startsWith("https://") ? s : `https://${s}`;
+  })
+  .filter(Boolean);
 
 app.use(cors({
-  origin: isProduction ? allowedOrigin : true,
+  origin: isProduction
+    ? (origin, cb) => {
+        if (!origin || allowedOrigins.includes(origin)) cb(null, true);
+        else cb(new Error(`CORS: origin ${origin} not allowed`));
+      }
+    : true,
   credentials: true,
 }));
 app.use(express.json());
@@ -495,14 +509,6 @@ app.use((err: any, _req: any, res: any, _next: any) => {
   }
 });
 
-if (isProduction) {
-  const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist/public");
-  const indexHtml = path.join(frontendDist, "index.html");
-  logger.info({ frontendDist, cwd: process.cwd() }, "Serving frontend static files");
-  app.use(express.static(frontendDist));
-  app.use((_req, res, next) => {
-    res.sendFile(indexHtml, (err) => { if (err) next(err); });
-  });
-}
+// Frontend is now served by the Next.js service — Express is API-only.
 
 export default app;

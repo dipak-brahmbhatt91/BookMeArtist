@@ -199,7 +199,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <ul className="space-y-3 text-sm text-muted-foreground">
                   <li><Link href="/artists" className="hover:text-white transition-colors">Browse Artists</Link></li>
                   <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-                  <li><Link href="/#how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
                 </ul>
               </div>
 
@@ -208,7 +207,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <h4 className="font-semibold text-white text-sm mb-4">For Artists</h4>
                 <ul className="space-y-3 text-sm text-muted-foreground">
                   <li><Link href="/login" className="hover:text-white transition-colors">Artist Login</Link></li>
-                  <li><Link href="/#apply" className="hover:text-white transition-colors">Apply as Artist</Link></li>
+                  <li><Link href="/?apply=1" className="hover:text-white transition-colors">Apply as Artist</Link></li>
                   <li><Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
                 </ul>
               </div>
@@ -219,7 +218,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <ul className="space-y-3 text-sm text-muted-foreground">
                   <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
                   <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                  <li><Link href="/privacy#cookies" className="hover:text-white transition-colors">Cookie Policy</Link></li>
+                  <li><Link href="/privacy" className="hover:text-white transition-colors">Cookie Policy</Link></li>
                 </ul>
               </div>
 

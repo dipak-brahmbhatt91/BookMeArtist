@@ -422,6 +422,15 @@ const app: Express = express();
 
 app.set("trust proxy", true);
 
+// Serve frontend static files (JS/CSS/images) early — before CORS/session so
+// that <script type="module" crossorigin> and <link rel="stylesheet"> requests
+// are never evaluated against the CORS origin whitelist.
+if (process.env.NODE_ENV === "production") {
+  const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist/public");
+  logger.info({ frontendDist, cwd: process.cwd() }, "Serving frontend static files");
+  app.use(express.static(frontendDist));
+}
+
 app.use(helmet({
   contentSecurityPolicy: false,      // CSP would break inline scripts/styles in the SPA
   crossOriginEmbedderPolicy: false,  // needed for Unsplash images and external assets
@@ -509,11 +518,9 @@ app.use((err: any, _req: any, res: any, _next: any) => {
   }
 });
 
+// SPA catch-all: serve index.html for any non-API route (client-side routing)
 if (isProduction) {
-  const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist/public");
-  const indexHtml = path.join(frontendDist, "index.html");
-  logger.info({ frontendDist, cwd: process.cwd() }, "Serving frontend static files");
-  app.use(express.static(frontendDist));
+  const indexHtml = path.join(process.cwd(), "artifacts/bookmeartist/dist/public", "index.html");
   app.use((_req, res, next) => {
     res.sendFile(indexHtml, (err) => { if (err) next(err); });
   });

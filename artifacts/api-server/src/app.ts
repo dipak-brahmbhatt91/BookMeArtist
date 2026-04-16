@@ -509,6 +509,14 @@ app.use((err: any, _req: any, res: any, _next: any) => {
   }
 });
 
-// Frontend is now served by the Next.js service — Express is API-only.
+if (isProduction) {
+  const frontendDist = path.join(process.cwd(), "artifacts/bookmeartist/dist/public");
+  const indexHtml = path.join(frontendDist, "index.html");
+  logger.info({ frontendDist, cwd: process.cwd() }, "Serving frontend static files");
+  app.use(express.static(frontendDist));
+  app.use((_req, res, next) => {
+    res.sendFile(indexHtml, (err) => { if (err) next(err); });
+  });
+}
 
 export default app;

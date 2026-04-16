@@ -463,14 +463,23 @@ if (isProduction && !process.env.SESSION_SECRET) {
 const sessionSecret = process.env.SESSION_SECRET ?? "dev-secret-local-only";
 // ALLOWED_ORIGIN supports a single origin or a comma-separated list.
 // Render's fromService gives a bare hostname — normalise each entry to a full URL.
-const allowedOrigins = (process.env.ALLOWED_ORIGIN ?? "http://localhost:5173,http://localhost:3000")
-  .split(",")
-  .map((o) => {
-    const s = o.trim();
-    if (!s) return "";
-    return s.startsWith("http://") || s.startsWith("https://") ? s : `https://${s}`;
-  })
-  .filter(Boolean);
+// SITE_URL (the canonical public domain) is always implicitly allowed so the
+// same-domain frontend can call /api/* without extra env var configuration.
+const siteUrl = process.env.SITE_URL ?? "https://www.bookmeartist.com";
+const allowedOrigins = [
+  siteUrl,
+  // strip/add www variant so both bare and www domain work
+  siteUrl.includes("://www.")
+    ? siteUrl.replace("://www.", "://")
+    : siteUrl.replace("://", "://www."),
+  ...(process.env.ALLOWED_ORIGIN ?? "http://localhost:5173,http://localhost:3000")
+    .split(",")
+    .map((o) => {
+      const s = o.trim();
+      if (!s) return "";
+      return s.startsWith("http://") || s.startsWith("https://") ? s : `https://${s}`;
+    }),
+].filter(Boolean);
 
 app.use(cors({
   origin: isProduction
